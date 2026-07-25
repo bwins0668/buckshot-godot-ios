@@ -103,7 +103,11 @@ jobs:
         shell: bash
         run: |
           mkdir -p builds
-          "$GODOT_PATH" --headless --path . --export-release "iOS" builds/buckshot.xcodeproj 2>&1 | tail -50
+          "$GODOT_PATH" --headless --path . --export-release "iOS" builds/buckshot.xcodeproj > "$RUNNER_TEMP/godot-export.log" 2>&1
+          EXP_RC=$?
+          echo "godot export exit=$EXP_RC"
+          tail -50 "$RUNNER_TEMP/godot-export.log"
+          if [ $EXP_RC -ne 0 ]; then exit $EXP_RC; fi
           ls -la builds/
 
       - name: Configure code signing for manual
