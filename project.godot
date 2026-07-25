@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Buckshot Roulette"
 run/main_scene="res://scenes/menu.tscn"
-config/features=PackedStringArray("4.1", "Mobile")
+config/features=PackedStringArray("4.3", "Mobile")
 boot_splash/bg_color=Color(0, 0, 0, 1)
 boot_splash/show_image=false
 boot_splash/image="res://misc/CR White splash.png"
@@ -583,7 +583,7 @@ locale/locale_filter_mode=0
 [rendering]
 
 renderer/rendering_method="mobile"
-renderer/rendering_method.mobile="gl_compatibility"
+renderer/rendering_method.mobile_renderer="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
 limits/opengl/max_lights_per_object=20
 environment/defaults/default_clear_color=Color(0.254902, 0.254902, 0.254902, 1)

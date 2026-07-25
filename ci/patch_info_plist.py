@@ -2,53 +2,58 @@
 """
 Patch the bundled .app/Info.plist after `xcodebuild archive` to:
 
-  (1) inject `godot_cmdline` cmdline args that force Godot 4.1.1's iOS
-      renderer into OpenGL ES + gl_compatibility (Candidate A — the
-      cheapest possible forcing function for the v0.5/v0.6 black screen)
-  (2) bump MinimumOSVersion to 13.0, since Godot 4.1.1's exporter emits
-      12.0 regardless of `application/minimum_os_version="13.0"` in
-      export_presets.cfg, and the post-export pbxproj patcher rewrites
-      IPHONEOS_DEPLOYMENT_TARGET but Xcode's Info.plist generator picks
-      the older 12.0 default when the value isn't propagated.
+  (1) Optionally inject `godot_cmdline` cmdline args to force a specific
+      renderer. DEFAULT in v0.8 Candidate C is no injection — Godot 4.3's
+      Mobile renderer uses native Metal on Apple Silicon by default, which
+      fixes the v0.5/v0.6/v0.7 black screen on iPad M2 + iOS 27.
+      Set env var `PATCH_GODOT_CMDLINE=opengl3` to force the legacy OpenGL
+      ES + gl_compatibility fallback (Candidate A retry).
+  (2) bump MinimumOSVersion to 13.0, keeping the install gate clean on
+      iOS 26+ where Apple may begin enforcing a higher floor.
 
-Why this is Candidate A of v0.7:
+Why Candidate C supersedes Candidate A (v0.7):
   - Godot 4.1.1 iOS has NO native Metal backend (libgodot.a has 0 hits
     on MTLDevice). Its main path is MoltenVK/Vulkan, which silently
-    fails on iPad M2 + iOS 27 (the v0.5/v0.6 root cause). The fallback
-    is OpenGL ES, but in 4.1.1 the OpenGL ES path uses hardcoded FBO 0
-    instead of the system FBO, which fails on iOS where system_fbo != 0
-    (Godot issue #86830, fix PR #88745 — Godot 4.3+).
-  - This patch is the cheapest possible forcing-function. On iOS 27 +
-    M2 we expect OpenGL ES to still be removed/unusable, but it forces
-    a definitive answer: sim either goes non-magenta (great) or stays
-    magenta (expected, see SKILL.md#sim-never-trust).
+    fails on iPad M2 + iOS 27. The OpenGL ES fallback uses hardcoded
+    FBO 0 instead of the system FBO, which fails on iOS where
+    system_fbo != 0 (Godot issue #86830, fix PR #88745 — Godot 4.3+).
+  - v0.7 verified that forcing OpenGL ES via godot_cmdline patch DOES
+    enter the Info.plist correctly, yet the iPad M2 + iOS 27 screen
+    remained black. iOS 27 has removed OpenGL ES entirely, so the
+    legacy path cannot succeed on this device. Candidate C upgrades
+    Godot to 4.3-stable, whose Mobile renderer uses native Metal on
+    Apple Silicon — bypassing both MoltenVK and OpenGL ES entirely.
 
 Idempotent: re-running replaces the keys in place.
 
 Usage:
   python3 ci/patch_info_plist.py <Info.plist> [<Info.plist> ...]
 
-Tested against Godot 4.1.1 export's actual Info.plist schema (verified
-on dist/v0.6/artifacts/buckshot-ios/_temp/Buckshot.xcarchive/Products/
-Applications/buckshot.app/Info.plist — see HANDOVER §6).
+Tested against Godot 4.3-stable export's Info.plist schema.
 """
 from __future__ import annotations
 
+import os
 import plistlib
 import sys
 from pathlib import Path
 from typing import Iterable
 
-# Candidate A — force Godot into the OpenGL ES + gl_compatibility path.
-GODOT_CMDLINE: list[str] = [
-    "--rendering-driver", "opengl3",
-    "--rendering-method", "gl_compatibility",
-]
+# Candidate C (Godot 4.3) — let the engine pick its native Metal path.
+# Default: do NOT inject godot_cmdline. To force the legacy OpenGL ES
+# fallback (regression test only), set env var PATCH_GODOT_CMDLINE=opengl3.
+GODOT_CMDLINE: list[str] | None = None
+if os.environ.get("PATCH_GODOT_CMDLINE") == "opengl3":
+    GODOT_CMDLINE = [
+        "--rendering-driver", "opengl3",
+        "--rendering-method", "gl_compatibility",
+    ]
 
-# Xcode 15.4 SDK's IPHONEOS_DEPLOYMENT_TARGET must be >= 12.0, but Godot
-# 4.1.1's exporter ignores `application/minimum_os_version` and emits
-# 12.0 in pbxproj. Bumping to 13.0 here keeps the install gate clean on
-# iOS 26+ where Apple may begin enforcing a higher floor.
+# Godot 4.3 iOS exporter emits MinimumOSVersion following
+# application/minimum_os_version in export_presets.cfg, which we already
+# set to "13.0" — but we re-assert it here defensively, since prior 4.1.1
+# versions ignored the preset and shipped 12.0 (Xcode 15.4 SDK floor is
+# 12.0, but iOS 26+ begins enforcing a higher floor).
 MINIMUM_OS_VERSION: str = "13.0"
 
 
@@ -59,7 +64,11 @@ def patch_one(plist_path: Path) -> None:
         data = plistlib.load(f)
 
     before_cmdline = data.get("godot_cmdline")
-    data["godot_cmdline"] = list(GODOT_CMDLINE)
+    if GODOT_CMDLINE is not None:
+        data["godot_cmdline"] = list(GODOT_CMDLINE)
+        cmdline_after = data["godot_cmdline"]
+    else:
+        cmdline_after = before_cmdline  # unchanged
 
     before_minos = data.get("MinimumOSVersion")
     data["MinimumOSVersion"] = MINIMUM_OS_VERSION
@@ -68,7 +77,7 @@ def patch_one(plist_path: Path) -> None:
         plistlib.dump(data, f)
 
     print(f"[patch_info_plist] {plist_path}")
-    print(f"  godot_cmdline:  {before_cmdline!r} -> {data['godot_cmdline']!r}")
+    print(f"  godot_cmdline:  {before_cmdline!r} -> {cmdline_after!r}")
     print(f"  MinimumOSVersion: {before_minos!r} -> {data['MinimumOSVersion']!r}")
 
 

@@ -60,15 +60,18 @@ WORK="$RUNNER_TEMP/ipa_work"
 rm -rf "$WORK"
 mkdir -p "$WORK/Payload"
 cp -R "$APP_SRC" "$WORK/Payload/buckshot.app"
-# Phase v0.7 — inject godot_cmdline to force OpenGL ES + gl_compatibility
-# (Candidate A of the v0.5/v0.6 black-screen fix). See ci/patch_info_plist.py
-# for the rationale. Must run BEFORE codesign because Info.plist edits
-# invalidate the embedded hash.
+# Phase v0.8 Candidate C — Godot 4.3-stable iOS export. The 4.3 Mobile
+# renderer uses native Metal on Apple Silicon by default, so we do NOT
+# inject `godot_cmdline` (patch_info_plist.py only re-asserts the
+# MinimumOSVersion bump). See ci/patch_info_plist.py for the rationale
+# and the PATCH_GODOT_CMDLINE=opengl3 opt-in for the legacy fallback.
+# Must run BEFORE codesign because Info.plist edits invalidate the
+# embedded hash.
 PATCHED_PLIST="$WORK/Payload/buckshot.app/Info.plist"
 if [ -f "$PATCHED_PLIST" ]; then
   python3 "$GITHUB_WORKSPACE/ci/patch_info_plist.py" "$PATCHED_PLIST"
 else
-  echo "WARN: no Info.plist at $PATCHED_PLIST -- skipping godot_cmdline patch"
+  echo "WARN: no Info.plist at $PATCHED_PLIST -- skipping Info.plist patch"
 fi
 
 # Embed provisioning profile (required for distribution-style ipa).

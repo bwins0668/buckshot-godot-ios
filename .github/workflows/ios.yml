@@ -9,14 +9,14 @@ permissions:
   contents: read
 
 env:
-  GODOT_VERSION: 4.1.1
+  GODOT_VERSION: 4.3
 
 jobs:
   build:
     # 2026-07-25 probe matrix confirmed: macos-14, macos-latest, macos-15 all
     # start successfully today. macos-13 is queued indefinitely on this repo.
-    # Use macos-14 (Apple Silicon M1) — fastest Godot 4.1.1 export time,
-    # and ARM64 iOS Simulator works natively.
+    # Use macos-14 (Apple Silicon M1) — fastest Godot 4.3 export time,
+    # and ARM64 iOS Simulator works natively (4.3 templates ship arm64 sim).
     runs-on: macos-14
     timeout-minutes: 90
 
@@ -50,15 +50,15 @@ jobs:
             fi
           done
 
-      - name: Install Godot 4.1.1
+      - name: Install Godot ${{ env.GODOT_VERSION }}
         shell: bash
         run: |
           mkdir -p ~/godot
           GODOT_DIR="$HOME/godot"
           GODOT_BIN="$GODOT_DIR/Godot.app/Contents/MacOS/Godot"
           if [ ! -x "$GODOT_BIN" ]; then
-            echo "Downloading Godot 4.1.1 stable (macOS universal)"
-            curl -L -o "$GODOT_DIR/godot.zip" "https://github.com/godotengine/godot/releases/download/4.1.1-stable/Godot_v4.1.1-stable_macos.universal.zip"
+            echo "Downloading Godot ${GODOT_VERSION}-stable (macOS universal)"
+            curl -L -o "$GODOT_DIR/godot.zip" "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_macos.universal.zip"
             cd "$GODOT_DIR"
             unzip -o godot.zip
             rm godot.zip
@@ -337,10 +337,11 @@ jobs:
           fi
 
           # 3. Build .app for iphonesimulator SDK (no signing needed)
-          # NOTE: Godot 4.1.1 iOS export templates only ship an x86_64 slice
-          # for iphonesimulator (no arm64 simulator slice). macos-14 runners
-          # are Apple Silicon, so we must force ARCHS=x86_64 (Rosetta will
-          # JIT the binary into arm64 at runtime -- works on macos-13/14+).
+          # NOTE: Godot 4.3 iOS export templates ship BOTH x86_64 and arm64
+          # slices for iphonesimulator natively (4.1.1 only shipped x86_64).
+          # macos-14 runner is Apple Silicon, so arm64 sim is the right arch
+          # (and avoids the Rosetta JIT overhead). Only fall back to x86_64
+          # if the active simulator runtime on the runner is Intel-only.
           SIM_DD="$RUNNER_TEMP/sim-derived"
           rm -rf "$SIM_DD"
 
@@ -351,8 +352,8 @@ jobs:
             -sdk iphonesimulator \
             -destination "platform=iOS Simulator,id=$DEVICE_UDID" \
             -derivedDataPath "$SIM_DD" \
-            ARCHS=x86_64 \
-            EXCLUDED_ARCHS=arm64 \
+            ARCHS=arm64 \
+            EXCLUDED_ARCHS=x86_64 \
             ONLY_ACTIVE_ARCH=NO \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
