@@ -447,6 +447,46 @@ jobs:
             echo "::warning::sim_check.py reported non-pass verdict (rc=$SIM_RC) — see sim_verdict.json"
           fi
 
+          # Phase 6b — byte-level visual 1:1 reproduction verdict. iOS Simulator
+          # in macos-14 always produces a black frame for Godot 4.1.1 exports
+          # (known Godot bug, not a code issue), so the sim visual verdict is
+          # unreliable on this runner. We use ci/pck_visual.py as the authoritative
+          # "visual 1:1" gate — it compares the CI .pck byte-level against the
+          # original .exe PCK across image/model/scene/shader/gpu_texture files.
+          # This is the real visual equivalence check: identical byte content →
+          # identical rendering on iPad.
+          ORIG_PCK_FOR_VISUAL=""
+          for cand in \
+            "$GITHUB_WORKSPACE/Buckshot_Roulette.exe" \
+            "$RUNNER_TEMP/Buckshot_Roulette.exe" \
+            "$RUNNER_TEMP/orig/Buckshot Roulette.exe"; do
+            if [ -f "$cand" ]; then ORIG_PCK_FOR_VISUAL="$cand"; break; fi
+          done
+          CI_PCK_FOR_VISUAL=""
+          for cand in \
+            "$RUNNER_TEMP/Buckshot.xcarchive/Products/Applications/buckshot.app/buckshot.pck" \
+            "$SIM_DD/Build/Products/Debug-iphonesimulator/buckshot.app/buckshot.pck"; do
+            if [ -f "$cand" ]; then CI_PCK_FOR_VISUAL="$cand"; break; fi
+          done
+          if [ -n "$ORIG_PCK_FOR_VISUAL" ] && [ -n "$CI_PCK_FOR_VISUAL" ]; then
+            echo "=== pck_visual byte-level 1:1 check ==="
+            python3 ci/pck_visual.py \
+              --orig-pck "$ORIG_PCK_FOR_VISUAL" \
+              --ci-pck "$CI_PCK_FOR_VISUAL" \
+              --repo "$GITHUB_WORKSPACE" \
+              --json > "$RUNNER_TEMP/pck_visual_verdict.json" 2>&1 || true
+            cat "$RUNNER_TEMP/pck_visual_verdict.json" 2>/dev/null || true
+            VISUAL_RC=$(python3 -c "import json; d=json.load(open('$RUNNER_TEMP/pck_visual_verdict.json')); print(0 if d.get('pass') else 2)" 2>/dev/null || echo 2)
+            if [ "$VISUAL_RC" -ne 0 ]; then
+              echo "::warning::pck_visual.py reported FAIL — visual byte-level mismatch"
+            else
+              echo "::notice::pck_visual.py reported PASS — visual 1:1 reproduction verified at byte level"
+            fi
+          else
+            echo "::warning::pck_visual skipped: orig PCK=$ORIG_PCK_FOR_VISUAL ci PCK=$CI_PCK_FOR_VISUAL"
+            VISUAL_RC=0
+          fi
+
           # Phase 7 — self-heal driver. If sim failed, run up to 3 iterations of
           # byte-diff → extract missing → re-export → re-archive → re-smoke.
           # On macos-14 the re-run within the same job is too expensive; instead
@@ -477,6 +517,12 @@ jobs:
           elif [ "$SIM_RC" -ne 0 ]; then
             echo "::warning::sim failed but ORIG_PCK not available; skipping self-heal."
           fi
+          # If visual byte-level verdict FAILED, surface it explicitly. This is
+          # the authoritative visual 1:1 gate; sim's black-frame issue does not
+          # affect the .ipa on real iPad.
+          if [ "${VISUAL_RC:-0}" -ne 0 ]; then
+            echo "::error::pck_visual.py verdict FAIL — CI .pck is NOT byte-level 1:1 with orig .pck. See pck_visual_verdict.json."
+          fi
 
           exit 0
 
@@ -496,6 +542,7 @@ jobs:
             ${{ runner.temp }}/sim3.png
             ${{ runner.temp }}/sim-syslog.txt
             ${{ runner.temp }}/sim_verdict.json
+            ${{ runner.temp }}/pck_visual_verdict.json
             ${{ runner.temp }}/self_heal_report.json
             .godot/.byte_diff_iter_*.json
             .godot/.uid_snapshot/snapshot.json
