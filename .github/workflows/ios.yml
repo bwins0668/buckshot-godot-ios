@@ -60,12 +60,14 @@ jobs:
           TEMPLATES="$HOME/Library/Application Support/Godot/export_templates/$GODOT_VERSION.stable"
           if [ ! -d "$TEMPLATES" ]; then
             echo "Downloading iOS export templates"
-            curl -L -o templates.tpz "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+            rm -rf /tmp/godot_tpl
+            mkdir -p /tmp/godot_tpl
+            curl -L -o "/tmp/godot_tpl/templates.tpz" "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+            cd /tmp/godot_tpl
+            unzip -q -o templates.tpz
+            ls templates/ | head
             mkdir -p "$TEMPLATES"
-            cd /tmp && rm -rf godot_tpl && mkdir godot_tpl && cd godot_tpl
-            unzip -q -o ../templates.tpz
             cp -r templates/* "$TEMPLATES/"
-            cd /tmp && rm -rf godot_tpl templates.tpz
           fi
           ls "$TEMPLATES" | head -5
 
