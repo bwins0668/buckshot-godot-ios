@@ -190,14 +190,10 @@ jobs:
         run: |
           cd builds
           PROJECT="buckshot.xcodeproj"
-          # Trigger signing path if any signing material is available.
           if [ -n "$IOS_CERT_PEM_BASE64" ]; then
             IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | head -1 | sed -n 's/.*"\(.*\)".*/\1/p')
             echo "Using identity: $IDENTITY"
             set +e
-            # Resolve ci/ExportOptions.plist relative to the repo root (one level up from builds/).
-            cp "$GITHUB_WORKSPACE/ci/ExportOptions.plist" "$RUNNER_TEMP/ExportOptions.plist"
-            ls -la "$RUNNER_TEMP/ExportOptions.plist" 2>&1
             xcodebuild \
               -project "$PROJECT" \
               -scheme "buckshot" \
@@ -215,20 +211,14 @@ jobs:
             echo "archive exit=$ARC"
             tail -30 "$RUNNER_TEMP/archive.log"
             if [ $ARC -ne 0 ]; then exit $ARC; fi
-            xcodebuild \
-              -exportArchive \
-              -archivePath "$RUNNER_TEMP/Buckshot.xcarchive" \
-              -exportPath "$RUNNER_TEMP/ipa_out" \
-              -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
-              PROVISIONING_PROFILE="8578d351-c09d-41c4-b74d-4755272a6e17" \
-              PROVISIONING_PROFILE_SPECIFIER="LpqS" \
-              DEVELOPMENT_TEAM="WB5752S5M6" \
-              CODE_SIGN_IDENTITY="$IDENTITY" > "$RUNNER_TEMP/export.log" 2>&1
-            EXP=$?
-            echo "exportArchive exit=$EXP"
-            tail -30 "$RUNNER_TEMP/export.log"
-            if [ $EXP -ne 0 ]; then exit $EXP; fi
-            ls -la "$RUNNER_TEMP/ipa_out" 2>&1
+            # Bypass xcodebuild -exportArchive (SIGSEGV on macos-14).
+            # Manually repackage the signed .app from the xcarchive as an .ipa.
+            PROFILE="$HOME/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision"
+            bash "$GITHUB_WORKSPACE/ci/package_ipa.sh" \
+              "$RUNNER_TEMP/Buckshot.xcarchive" \
+              "$RUNNER_TEMP/ipa_out" \
+              "$PROFILE" \
+              "$IDENTITY"
           else
             xcodebuild \
               -project "$PROJECT" \
