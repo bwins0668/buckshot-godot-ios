@@ -3,29 +3,56 @@
 #
 # exportArchive segfaults on the macos-14 runner (IDEDistribution SIGSEGV
 # regardless of method=development/app-store/ad-hoc). We bypass it by:
-#   1. Copying the .app out of the xcarchive
-#   2. Re-signing with our distribution identity (xcarchive's signature
-#      uses the embedded provisioning, which is fine, but we also need to
-#      embed the mobileprovision for distribution)
-#   3. Zipping into Payload/<app>.app
+#   1. Locating the .app inside the archive (or DerivedData if xcodebuild
+#      wrote it there instead of the archivePath target)
+#   2. Embedding the mobileprovision
+#   3. Re-signing with our distribution identity
+#   4. Zipping into Payload/<app>.app
 #
-# Output: a sideload-ready .ipa at $RUNNER_TEMP/ipa_out/buckshot.ipa
+# Output: a sideload-ready .ipa at $2/buckshot.ipa
 set -euo pipefail
 
 ARCHIVE="${1:-$RUNNER_TEMP/Buckshot.xcarchive}"
 OUT_DIR="${2:-$RUNNER_TEMP/ipa_out}"
 PROFILE_SRC="${3:-$HOME/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision}"
-IDENTITY="${4:-Apple Distribution: ku wushi (WB5752S5M6)}"
+IDENTITY="${4:-}"
 
-if [ ! -d "$ARCHIVE" ]; then
-  echo "archive not found: $ARCHIVE" >&2
-  exit 1
+if [ -z "$IDENTITY" ]; then
+  # Pull from the default keychain if not given.
+  if [ -n "${KEYCHAIN_PATH:-}" ]; then
+    IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | head -1 | sed -n 's/.*"\(.*\)".*/\1/p')
+  fi
+  IDENTITY="${IDENTITY:-Apple Distribution}"
 fi
 
-APP_SRC="$ARCHIVE/Products/Application/buckshot.app"
-if [ ! -d "$APP_SRC" ]; then
-  # Godot lowercases the bundle; fallback to first .app
-  APP_SRC="$(ls -d "$ARCHIVE"/Products/Application/*.app | head -1)"
+echo "Archive:  $ARCHIVE"
+echo "Out dir:  $OUT_DIR"
+echo "Profile:  $PROFILE_SRC"
+echo "Identity: $IDENTITY"
+
+# xcodebuild on macos-14 sometimes leaves the xcarchive target dir empty
+# and parks the .app under DerivedData instead. Hunt for it.
+APP_SRC=""
+if [ -d "$ARCHIVE/Products/Applications" ]; then
+  APP_SRC="$(ls -d "$ARCHIVE"/Products/Applications/*.app 2>/dev/null | head -1 || true)"
+fi
+if [ -z "$APP_SRC" ] && [ -d "$ARCHIVE/Products/Application" ]; then
+  APP_SRC="$(ls -d "$ARCHIVE"/Products/Application/*.app 2>/dev/null | head -1 || true)"
+fi
+if [ -z "$APP_SRC" ]; then
+  APP_SRC="$(find "$ARCHIVE" -maxdepth 4 -type d -name "*.app" 2>/dev/null | head -1 || true)"
+fi
+if [ -z "$APP_SRC" ]; then
+  # Final fallback: DerivedData.
+  DD="$(find ~/Library/Developer/Xcode/DerivedData -maxdepth 6 -path "*ArchiveIntermediates/buckshot/InstallationBuildProductsLocation/Applications/buckshot.app" 2>/dev/null | head -1 || true)"
+  if [ -n "$DD" ]; then
+    echo "Found .app in DerivedData: $DD"
+    APP_SRC="$DD"
+  fi
+fi
+if [ -z "$APP_SRC" ] || [ ! -d "$APP_SRC" ]; then
+  echo "No .app found in archive or DerivedData" >&2
+  exit 1
 fi
 echo "Source app: $APP_SRC"
 
@@ -34,28 +61,33 @@ rm -rf "$WORK"
 mkdir -p "$WORK/Payload"
 cp -R "$APP_SRC" "$WORK/Payload/buckshot.app"
 
-# Embed provisioning profile (distribution-style). iOS looks for this in
-# the bundle root.
+# Embed provisioning profile (required for distribution-style ipa).
 if [ -f "$PROFILE_SRC" ]; then
   cp "$PROFILE_SRC" "$WORK/Payload/buckshot.app/embedded.mobileprovision"
-  echo "Embedded: $PROFILE_SRC"
+  echo "Embedded profile: $PROFILE_SRC"
 else
-  echo "WARN: no provisioning profile at $PROFILE_SRC -- install with"
-  echo "  ios_port/tools/Sideloadly or copy manually into the app root."
+  echo "WARN: no provisioning profile at $PROFILE_SRC -- skipping embed"
 fi
 
-# Re-sign with the matching identity (already signed during archive, but
-# the re-sign is needed because we touched the bundle).
-echo "Re-signing with: $IDENTITY"
-codesign --force --sign "$IDENTITY" \
-  --entitlements "$ARCHIVE/Info.plist" 2>/dev/null \
-  --generate-entitlement-der \
-  "$WORK/Payload/buckshot.app" || \
-codesign --force --sign "$IDENTITY" \
-  "$WORK/Payload/buckshot.app"
+# Locate entitlements file (xcarchive stores it as
+# IntermediateBuildFilesPath/<target>.build/Release-iphoneos/<target>.build/<target>.app.xcent).
+ENTITLEMENTS="$(find ~/Library/Developer/Xcode/DerivedData -path "*Release-iphoneos*/*.app.xcent" 2>/dev/null | head -1 || true)"
+echo "Entitlements: ${ENTITLEMENTS:-<none>}"
 
-codesign --verify --deep --strict "$WORK/Payload/buckshot.app" && \
-  echo "Signature OK"
+echo "Re-signing with: $IDENTITY"
+if [ -n "$ENTITLEMENTS" ] && [ -f "$ENTITLEMENTS" ]; then
+  codesign --force --sign "$IDENTITY" \
+    --entitlements "$ENTITLEMENTS" \
+    --generate-entitlement-der \
+    --timestamp=none \
+    "$WORK/Payload/buckshot.app"
+else
+  codesign --force --sign "$IDENTITY" \
+    --generate-entitlement-der \
+    --timestamp=none \
+    "$WORK/Payload/buckshot.app"
+fi
+codesign --verify --deep --strict "$WORK/Payload/buckshot.app" && echo "Signature OK"
 
 mkdir -p "$OUT_DIR"
 cd "$WORK"
