@@ -117,13 +117,17 @@ jobs:
           #   CODE_SIGN_IDENTITY = "iPhone Distribution"
           #   CODE_SIGN_STYLE    = "Automatic"
           # which conflicts with our manual Distribution cert + dev profile
-          # combo. Edit the pbxproj in-place to set Manual signing style.
+          # combo AND with `xcodebuild -sdk iphonesimulator` Debug builds.
+          # Edit the pbxproj in-place to set Manual signing style.
           PBXPROJ="builds/buckshot.xcodeproj/project.pbxproj"
           if [ ! -f "$PBXPROJ" ]; then
             echo "Not found: $PBXPROJ; skipping"
             exit 0
           fi
           python3 ci/configure_signing.py "$PBXPROJ"
+          # Verify by grepping the patched file
+          echo "--- post-patch verification ---"
+          grep -nE "(CODE_SIGN_IDENTITY|ProvisioningStyle|CODE_SIGN_STYLE|DEPLOYMENT_TARGET)" "$PBXPROJ" | head -20
 
       - name: Repair pbxproj indentation
         shell: bash
@@ -362,6 +366,7 @@ jobs:
           path: |
             ${{ runner.temp }}/Buckshot.xcarchive
             ${{ runner.temp }}/ipa_out/*.ipa
+            ${{ runner.temp }}/godot-export.log
             ${{ runner.temp }}/sim-build.log
             ${{ runner.temp }}/sim.log
             ${{ runner.temp }}/sim.png

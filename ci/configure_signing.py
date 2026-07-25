@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
-"""Patch a Godot-generated Xcode project to match our manual signing setup.
+"""Patch a Godot-generated Xcode project for manual distribution signing.
 
-Godot 4.1.1's iOS exporter writes a project.pbxproj that is incompatible
-with both xcodebuild manual signing AND iphonesimulator Debug builds:
+Godot 4.1.1's iOS exporter writes a project.pbxproj with several defaults
+that conflict with our setup (Distribution cert + manual signing + iOS 12
+deployment target). xcodebuild refuses to build with:
 
-  CODE_SIGN_STYLE         = "Automatic"
-  ProvisioningStyle       = Automatic;
-  CODE_SIGN_IDENTITY[sdk=iphoneos*] = "iPhone Distribution"
-  IPHONEOS_DEPLOYMENT_TARGET = "11.0"
+  error: buckshot has conflicting provisioning settings.
+         buckshot is automatically signed for development,
+         but a conflicting code signing identity iPhone Distribution
+         has been manually specified.
 
-We rewrite all four to Manual + "Apple Distribution" + 12.0 so that:
-  * `xcodebuild archive` with explicit manual flags no longer errors with
-    "conflicting provisioning settings: Automatic vs iPhone Distribution"
-  * `xcodebuild -sdk iphonesimulator -configuration Debug` (smoke test)
-    doesn't reject the embedded iPhone Distribution identity either.
+We rewrite four fields (in both Project-level and Target-level sections,
+since pbxproj duplicates them):
+
+  CODE_SIGN_STYLE                  "Automatic"    -> "Manual"
+  ProvisioningStyle                 Automatic     -> Manual
+  CODE_SIGN_IDENTITY (any sdk=)    "iPhone Distribution" -> "Apple Distribution"
+  IPHONEOS_DEPLOYMENT_TARGET        11.0          -> 12.0
 
 Usage: python3 configure_signing.py <path-to-pbxproj>
 """
@@ -22,35 +25,46 @@ import sys
 import pathlib
 
 
+# Order matters: replace identity first so the style rewrite doesn't see
+# the original value being half-matched.
 PAIRS = [
-    # (pattern, replacement)
+    # Strip any [sdk=...] qualifier and rewrite to Manual + Apple Distribution.
+    # Targets both
+    #   CODE_SIGN_IDENTITY = "iPhone Distribution";
+    #   CODE_SIGN_IDENTITY[sdk=iphoneos*] = "iPhone Distribution";
+    (r'CODE_SIGN_IDENTITY(\[[^\]]*\])? = "iPhone Distribution";',
+     r'CODE_SIGN_IDENTITY\1 = "Apple Distribution";'),
     (r'CODE_SIGN_STYLE = "Automatic";',
      'CODE_SIGN_STYLE = "Manual";'),
     (r'ProvisioningStyle = Automatic;',
      'ProvisioningStyle = Manual;'),
-    (r'CODE_SIGN_IDENTITY\[sdk=iphoneos\*\] = "iPhone Distribution";',
-     'CODE_SIGN_IDENTITY[sdk=iphoneos*] = "Apple Distribution";'),
     (r'IPHONEOS_DEPLOYMENT_TARGET = 11\.0;',
      'IPHONEOS_DEPLOYMENT_TARGET = 12.0;'),
 ]
 
 
-def patch(text: str) -> tuple[str, int]:
-    hits = 0
+def patch(text: str) -> tuple[str, dict[str, int]]:
+    counts = {}
     for pattern, replacement in PAIRS:
         text, n = re.subn(pattern, replacement, text)
-        hits += n
-    return text, hits
+        # Record by leading token of the pattern for visibility.
+        label = pattern.split()[0]
+        counts[label] = counts.get(label, 0) + n
+    return text, counts
 
 
 def main(path: pathlib.Path) -> int:
     src = path.read_text(encoding="utf-8")
-    out, hits = patch(src)
+    out, counts = patch(src)
     if out == src:
         print(f"No changes made to {path}")
         return 0
     path.write_text(out, encoding="utf-8")
-    print(f"Patched {hits} signing/deployment fields in {path}")
+    for label, n in counts.items():
+        if n:
+            print(f"  {label}: {n} replacement(s)")
+    total = sum(counts.values())
+    print(f"Patched {total} signing/deployment fields in {path}")
     return 0
 
 
