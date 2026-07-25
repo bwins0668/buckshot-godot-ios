@@ -154,7 +154,7 @@ jobs:
             IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | head -1 | sed -n 's/.*"\(.*\)".*/\1/p')
             xcodebuild \
               -project "$PROJECT" \
-              -scheme "Buckshot" \
+              -scheme "buckshot" \
               -configuration Release \
               -destination "generic/platform=iOS" \
               -archivePath "$RUNNER_TEMP/Buckshot.xcarchive" \
@@ -173,7 +173,7 @@ jobs:
           else
             xcodebuild \
               -project "$PROJECT" \
-              -scheme "Buckshot" \
+              -scheme "buckshot" \
               -configuration Release \
               -destination "generic/platform=iOS" \
               CODE_SIGNING_REQUIRED=NO \
