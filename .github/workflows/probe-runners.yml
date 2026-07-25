@@ -1,0 +1,26 @@
+name: Probe macOS runners
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - macos-14
+          - macos-13
+          - macos-12
+          - macos-latest
+          - macos-latest-large
+          - macos-15
+    steps:
+      - name: hello
+        run: |
+          echo "running on: $RUNNER_OS"
+          uname -a
+          which xcodebuild || echo "no xcodebuild"
+          xcodebuild -version || true
+          sw_vers || true
