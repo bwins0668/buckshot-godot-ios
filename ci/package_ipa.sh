@@ -60,6 +60,16 @@ WORK="$RUNNER_TEMP/ipa_work"
 rm -rf "$WORK"
 mkdir -p "$WORK/Payload"
 cp -R "$APP_SRC" "$WORK/Payload/buckshot.app"
+# Phase v0.7 — inject godot_cmdline to force OpenGL ES + gl_compatibility
+# (Candidate A of the v0.5/v0.6 black-screen fix). See ci/patch_info_plist.py
+# for the rationale. Must run BEFORE codesign because Info.plist edits
+# invalidate the embedded hash.
+PATCHED_PLIST="$WORK/Payload/buckshot.app/Info.plist"
+if [ -f "$PATCHED_PLIST" ]; then
+  python3 "$GITHUB_WORKSPACE/ci/patch_info_plist.py" "$PATCHED_PLIST"
+else
+  echo "WARN: no Info.plist at $PATCHED_PLIST -- skipping godot_cmdline patch"
+fi
 
 # Embed provisioning profile (required for distribution-style ipa).
 if [ -f "$PROFILE_SRC" ]; then
