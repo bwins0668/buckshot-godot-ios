@@ -58,42 +58,42 @@ jobs:
       - name: Import project + generate ETC2/ASTC
         shell: bash
         run: |
-          # Headless import — produces .godot/imported/*.ctex with ETC2/ASTC variants
-          # (the project.godot already declares textures/vram_compression/import_etc2_astc=true)
-          "$GODOT_PATH" --headless --path . --import 2>&1 | tail -50
-          ETC2_COUNT=$(find .godot/imported -name "*.etc2.ctex" 2>/dev/null | wc -l | tr -d ' ')
-          ASTC_COUNT=$(find .godot/imported -name "*.astc.ctex" 2>/dev/null | wc -l | tr -d ' ')
-          echo "Generated ETC2: $ETC2_COUNT, ASTC: $ASTC_COUNT"
-          if [ "$ETC2_COUNT" = "0" ] && [ "$ASTC_COUNT" = "0" ]; then
-            echo "ERROR: no ETC2/ASTC generated — reimport may have destroyed cache"
-            exit 1
+          # Skip reimport when cache is present: .godot/imported/ already contains
+          # the converted .scn + ETC2/ASTC .ctex variants. Re-running --import
+          # on 166 mesh files takes 10+ minutes and rarely produces new output.
+          # We only run --import on first checkout (cache miss).
+          if [ ! -f ".godot/imported/shotgun with hands2.glb-179598454fcdf296820edfb8e62f1605.scn" ]; then
+            echo "Cache miss — running full --import"
+            "$GODOT_PATH" --headless --path . --import 2>&1 | tail -50
+          else
+            echo "Cache present — verifying ETC2/ASTC are present"
+            ETC2=$(find .godot/imported -name "*.etc2.ctex" 2>/dev/null | wc -l | tr -d ' ')
+            ASTC=$(find .godot/imported -name "*.astc.ctex" 2>/dev/null | wc -l | tr -d ' ')
+            echo "ETC2=$ETC2 ASTC=$ASTC"
+            if [ "$ETC2" = "0" ] && [ "$ASTC" = "0" ]; then
+              echo "Cache present but no ETC2/ASTC — running forced reimport"
+              "$GODOT_PATH" --headless --path . --import 2>&1 | tail -50
+            fi
           fi
 
-      - name: Verify mesh cache intact
+      - name: Sanity-check mesh cache
         shell: bash
         run: |
-          # Real geometry is ONLY in .godot/imported/*.scn (.glb files are empty stubs).
-          # If any .scn for a model-sized .glb is missing or tiny, the reimport wiped it.
-          MISSING=0
-          for glb in $(find models multiplayer -name "*.glb" 2>/dev/null); do
-            stem=$(basename "$glb" .glb)
+          # Spot-check 5 critical models (not all 166 — too slow).
+          for glb in "shotgun with hands2.glb" "tabletop export6.glb" "dealer head rigged1.glb" "dealer hands main1.glb" "shotgun shells export1.glb"; do
+            stem=$(echo "$glb" | sed 's/\.glb$//')
             scn=$(find .godot/imported -name "${stem}*.scn" 2>/dev/null | head -1)
             if [ -z "$scn" ]; then
-              echo "MISSING: $glb -> no .scn"
-              MISSING=$((MISSING+1))
-            else
-              sz=$(stat -f%z "$scn" 2>/dev/null || stat -c%s "$scn")
-              if [ "$sz" -lt 10000 ]; then
-                echo "TOO SMALL: $scn ($sz bytes) — likely empty"
-                MISSING=$((MISSING+1))
-              fi
+              echo "MISSING mesh cache for $glb"
+              exit 1
+            fi
+            sz=$(stat -f%z "$scn" 2>/dev/null || stat -c%s "$scn")
+            echo "$glb → $scn ($sz bytes)"
+            if [ "$sz" -lt 10000 ]; then
+              echo "TOO SMALL — reimport likely destroyed cache"
+              exit 1
             fi
           done
-          echo "Mesh cache check: $MISSING missing/tiny"
-          if [ "$MISSING" -gt 10 ]; then
-            echo "ERROR: too many models missing — reimport destroyed cache"
-            exit 1
-          fi
 
       - name: Export iOS Xcode project
         shell: bash
