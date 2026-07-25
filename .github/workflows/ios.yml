@@ -101,6 +101,11 @@ jobs:
           # macos-14 the runner then trips these errors and the export
           # ships a black PCK. Fix in place, idempotent.
           python3 ci/fix_import_crlf.py
+          # Phase 2c — Godot 4.1.1 also requires comma-separated entries
+          # inside `files=[ ... ]` arrays. .glb.import files emitted by
+          # gdre_export / decompiler lack those commas and Godot emits
+          # "Expected ','" on the first array entry. Idempotent.
+          python3 ci/fix_import_arrays.py
 
       - name: Sanity-check critical mesh cache
         shell: bash
