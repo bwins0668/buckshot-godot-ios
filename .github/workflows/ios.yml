@@ -13,11 +13,11 @@ env:
 
 jobs:
   build:
-    # macos-14 has been intermittently unavailable (startup_failure with 0 jobs,
-    # root cause unknown — likely GitHub-side macos-14 hosting queueing). Fall
-    # back to macos-13 (Intel) which is more stable; Rosetta JIT compiles the
-    # arm64 Godot binary at runtime on Apple Silicon runners when needed.
-    runs-on: macos-13
+    # 2026-07-25 probe matrix confirmed: macos-14, macos-latest, macos-15 all
+    # start successfully today. macos-13 is queued indefinitely on this repo.
+    # Use macos-14 (Apple Silicon M1) — fastest Godot 4.1.1 export time,
+    # and ARM64 iOS Simulator works natively.
+    runs-on: macos-14
     timeout-minutes: 90
 
     steps:
