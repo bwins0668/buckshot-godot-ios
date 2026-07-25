@@ -28,12 +28,13 @@ import pathlib
 # Order matters: replace identity first so the style rewrite doesn't see
 # the original value being half-matched.
 PAIRS = [
-    # Strip any [sdk=...] qualifier and rewrite to Manual + Apple Distribution.
-    # Targets both
+    # pbxproj writes the key in two forms:
     #   CODE_SIGN_IDENTITY = "iPhone Distribution";
-    #   CODE_SIGN_IDENTITY[sdk=iphoneos*] = "iPhone Distribution";
-    (r'CODE_SIGN_IDENTITY(\[[^\]]*\])? = "iPhone Distribution";',
-     r'CODE_SIGN_IDENTITY\1 = "Apple Distribution";'),
+    #   "CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+    # (the second is quoted because the [] would otherwise break the
+    #  OpenStep parser). Handle both with optional outer quotes.
+    (r'"?CODE_SIGN_IDENTITY(\[[^\]]*\])?"? = "iPhone Distribution";',
+     r'"?CODE_SIGN_IDENTITY\1"? = "Apple Distribution";'),
     (r'CODE_SIGN_STYLE = "Automatic";',
      'CODE_SIGN_STYLE = "Manual";'),
     (r'ProvisioningStyle = Automatic;',
