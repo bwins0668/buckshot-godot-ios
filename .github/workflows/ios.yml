@@ -392,6 +392,26 @@ jobs:
           fi
           ls "$SIM_APP" | head -20
 
+          # v0.8.2: patch_info_plist.py only runs in package_ipa.sh for the
+          # device IPA path. The sim .app is built directly from
+          # builds/buckshot.xcodeproj without going through package_ipa.sh,
+          # so its Info.plist never gets the godot_cmdline override. Without
+          # the override, Godot 4.3's iOS auto-detect picks the Vulkan
+          # driver — which doesn't exist on iOS Simulator — and the app
+          # crashes at rendering_device_driver_vulkan.cpp:1195 before any
+          # scene renders. Patch the sim Info.plist in place with the same
+          # --rendering-driver metal + --rendering-method mobile cmdline as
+          # the device IPA so both targets use the native Metal backend.
+          SIM_PLIST="$SIM_APP/Info.plist"
+          if [ -f "$SIM_PLIST" ]; then
+            echo "=== patching sim Info.plist (PATCH_GODOT_CMDLINE=${PATCH_GODOT_CMDLINE:-unset}) ==="
+            python3 ci/patch_info_plist.py "$SIM_PLIST" || \
+              echo "::warning::patch_info_plist.py failed for sim Info.plist"
+            /usr/libexec/PlistBuddy -c "Print :godot_cmdline" "$SIM_PLIST" 2>/dev/null || true
+          else
+            echo "::warning::Sim Info.plist not found at $SIM_PLIST"
+          fi
+
           # 4. Install on the booted simulator
           xcrun simctl install "$DEVICE_UDID" "$SIM_APP"
 
