@@ -204,7 +204,11 @@ jobs:
               -exportArchive \
               -archivePath "$RUNNER_TEMP/Buckshot.xcarchive" \
               -exportPath "$RUNNER_TEMP/ipa_out" \
-              -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" > "$RUNNER_TEMP/export.log" 2>&1
+              -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+              PROVISIONING_PROFILE="8578d351-c09d-41c4-b74d-4755272a6e17" \
+              PROVISIONING_PROFILE_SPECIFIER="LpqS" \
+              DEVELOPMENT_TEAM="WB5752S5M6" \
+              CODE_SIGN_IDENTITY="$IDENTITY" > "$RUNNER_TEMP/export.log" 2>&1
             EXP=$?
             echo "exportArchive exit=$EXP"
             tail -30 "$RUNNER_TEMP/export.log"
