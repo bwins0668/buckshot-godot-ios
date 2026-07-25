@@ -103,7 +103,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p builds
-          "$GODOT_BIN" --headless --path . --export-release "iOS" builds/buckshot.xcodeproj 2>&1 | tail -50
+          "$GODOT_PATH" --headless --path . --export-release "iOS" builds/buckshot.xcodeproj 2>&1 | tail -50
           ls -la builds/
 
       - name: Repair pbxproj indentation
