@@ -42,12 +42,26 @@ from typing import Iterable
 # Candidate C (Godot 4.3) — let the engine pick its native Metal path.
 # Default: do NOT inject godot_cmdline. To force the legacy OpenGL ES
 # fallback (regression test only), set env var PATCH_GODOT_CMDLINE=opengl3.
+#
+# v0.8.1 NOTE: iOS Simulator lacks Vulkan but Godot 4.3's auto-detect can
+# still return Vulkan as the chosen driver on Simulator. The Simulator then
+# crashes at rendering_device_driver_vulkan.cpp:1195 ("err != OK") and the
+# app exits before any scene is rendered. To force the Metal path on
+# BOTH real iOS device and iOS Simulator, set PATCH_GODOT_CMDLINE=metal.
 GODOT_CMDLINE: list[str] | None = None
-if os.environ.get("PATCH_GODOT_CMDLINE") == "opengl3":
+_pgc = os.environ.get("PATCH_GODOT_CMDLINE", "").strip().lower()
+if _pgc == "opengl3":
     GODOT_CMDLINE = [
         "--rendering-driver", "opengl3",
         "--rendering-method", "gl_compatibility",
     ]
+elif _pgc == "metal":
+    GODOT_CMDLINE = [
+        "--rendering-driver", "metal",
+        "--rendering-method", "mobile",
+    ]
+elif _pgc:
+    raise SystemExit(f"[patch_info_plist] unknown PATCH_GODOT_CMDLINE={_pgc!r} (use opengl3 or metal)")
 
 # Godot 4.3 iOS exporter emits MinimumOSVersion following
 # application/minimum_os_version in export_presets.cfg, which we already

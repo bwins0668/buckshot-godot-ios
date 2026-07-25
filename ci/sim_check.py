@@ -39,8 +39,17 @@ GODOT_ERROR_PATTERNS = [
      "missing_res_file"),
     (re.compile(r"ERROR:\s*Cannot find resource\s+([\"'])?(res://[^\s\"']+)"),
      "missing_res_find"),
-    (re.compile(r"ERROR:\s*Condition\s+\"[^\"]+\"\s+failed"),
+    # v0.8.1: broadened "Condition ... failed" to also catch
+    # "Condition ... is true. Returning" — that form is what Godot's
+    # rendering_device_driver_vulkan.cpp:1195 uses for Vulkan init fail
+    # on iOS Simulator. Without this, sim_check declared v0.8 a false-positive
+    # SUCCESS despite Godot having printed ERROR-level init failures.
+    (re.compile(r"ERROR:\s*Condition\s+\"[^\"]+\"\s+(?:failed|is true)"),
      "condition_failed"),
+    (re.compile(r"ERROR:\s*Failed to initialize driver for device"),
+     "driver_init_failed"),
+    (re.compile(r"ERROR:\s*Unable to create DisplayServer"),
+     "displayserver_unavailable"),
     (re.compile(r"SCRIPT ERROR.*?at line \d+"), "script_error"),
     (re.compile(r"Cannot resolve sub_resource"), "resolve_sub_resource"),
 ]
@@ -161,6 +170,15 @@ def main():
             if args.json:
                 print(json.dumps(result, indent=2))
             return 3
+        # v0.8.1: any ERROR-level Godot message = fail. Previously v0.8's
+        # Vulkan init failure printed 5 ERROR lines but sim_check.py only
+        # failed on FATAL patterns (SIGABRT/crash/etc.), letting a crashed
+        # app pass the verdict because its home screen pixel mean was high.
+        if errors:
+            result["reason"] = "godot_errors_present"
+            if args.json:
+                print(json.dumps(result, indent=2))
+            return 5
 
     if not result["black_screen"] and not result["fatal_log"]:
         result["pass"] = True

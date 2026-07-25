@@ -10,6 +10,13 @@ permissions:
 
 env:
   GODOT_VERSION: 4.3
+  # v0.8.1: Force Godot 4.3 to use Metal rendering driver explicitly.
+  # iOS Simulator auto-detect can return Vulkan (which doesn't exist on
+  # Simulator), causing "ERROR: Unable to create DisplayServer, all display
+  # drivers failed" at rendering_device_driver_vulkan.cpp:1195. Forcing
+  # Metal via Info.plist godot_cmdline bypasses the bad auto-detect on
+  # Simulator and is a no-op on real iOS device (which already uses Metal).
+  PATCH_GODOT_CMDLINE: metal
 
 jobs:
   build:
