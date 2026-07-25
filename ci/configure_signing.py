@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
-"""Switch a Godot-generated Xcode project to manual code signing style.
+"""Patch a Godot-generated Xcode project to match our manual signing setup.
 
-The Godot iOS exporter emits a project.pbxproj with:
-    CODE_SIGN_STYLE  = "Automatic"
-    ProvisioningStyle = Automatic;
+Godot 4.1.1's iOS exporter writes a project.pbxproj that is incompatible
+with both xcodebuild manual signing AND iphonesimulator Debug builds:
 
-xcodebuild complains about conflicting provisioning settings when we then
-override identity / profile manually. Patch the pbxproj in-place to use
-Manual style.
+  CODE_SIGN_STYLE         = "Automatic"
+  ProvisioningStyle       = Automatic;
+  CODE_SIGN_IDENTITY[sdk=iphoneos*] = "iPhone Distribution"
+  IPHONEOS_DEPLOYMENT_TARGET = "11.0"
+
+We rewrite all four to Manual + "Apple Distribution" + 12.0 so that:
+  * `xcodebuild archive` with explicit manual flags no longer errors with
+    "conflicting provisioning settings: Automatic vs iPhone Distribution"
+  * `xcodebuild -sdk iphonesimulator -configuration Debug` (smoke test)
+    doesn't reject the embedded iPhone Distribution identity either.
 
 Usage: python3 configure_signing.py <path-to-pbxproj>
 """
@@ -16,16 +22,35 @@ import sys
 import pathlib
 
 
+PAIRS = [
+    # (pattern, replacement)
+    (r'CODE_SIGN_STYLE = "Automatic";',
+     'CODE_SIGN_STYLE = "Manual";'),
+    (r'ProvisioningStyle = Automatic;',
+     'ProvisioningStyle = Manual;'),
+    (r'CODE_SIGN_IDENTITY\[sdk=iphoneos\*\] = "iPhone Distribution";',
+     'CODE_SIGN_IDENTITY[sdk=iphoneos*] = "Apple Distribution";'),
+    (r'IPHONEOS_DEPLOYMENT_TARGET = 11\.0;',
+     'IPHONEOS_DEPLOYMENT_TARGET = 12.0;'),
+]
+
+
+def patch(text: str) -> tuple[str, int]:
+    hits = 0
+    for pattern, replacement in PAIRS:
+        text, n = re.subn(pattern, replacement, text)
+        hits += n
+    return text, hits
+
+
 def main(path: pathlib.Path) -> int:
     src = path.read_text(encoding="utf-8")
-    out = src
-    out = re.sub(r'CODE_SIGN_STYLE = "Automatic";', 'CODE_SIGN_STYLE = "Manual";', out)
-    out = re.sub(r'ProvisioningStyle = Automatic;', 'ProvisioningStyle = Manual;', out)
+    out, hits = patch(src)
     if out == src:
-        print(f"No Automatic style fields replaced in {path}")
+        print(f"No changes made to {path}")
         return 0
     path.write_text(out, encoding="utf-8")
-    print(f"Configured manual signing style in {path}")
+    print(f"Patched {hits} signing/deployment fields in {path}")
     return 0
 
 

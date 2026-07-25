@@ -187,6 +187,8 @@ jobs:
             -derivedDataPath "$SIM_DD" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_STYLE=Manual \
             build > "$RUNNER_TEMP/sim-build.log" 2>&1
           BUILD_RC=$?
           echo "sim build exit=$BUILD_RC"
