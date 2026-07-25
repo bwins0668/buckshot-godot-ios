@@ -119,17 +119,7 @@ jobs:
             echo "Not found: $PBXPROJ; skipping"
             exit 0
           fi
-          python3 - <<'PY'
-import pathlib, re
-p = pathlib.Path("builds/buckshot.xcodeproj/project.pbxproj")
-s = p.read_text(encoding="utf-8")
-s2 = re.sub(r'CODE_SIGN_STYLE = "Automatic";', 'CODE_SIGN_STYLE = "Manual";', s)
-s2 = re.sub(r'ProvisioningStyle = Automatic;', 'ProvisioningStyle = Manual;', s2)
-# Keep CODE_SIGN_IDENTITY = "iPhone Distribution" -- that's the cert's
-# display name, matches what we have in the keychain.
-p.write_text(s2, encoding="utf-8")
-print("pbxproj: switched AUTOMATIC -> MANUAL signing style")
-PY
+          python3 ci/configure_signing.py "$PBXPROJ"
 
       - name: Repair pbxproj indentation
         shell: bash
