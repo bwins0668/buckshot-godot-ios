@@ -10,7 +10,6 @@ permissions:
 
 env:
   GODOT_VERSION: 4.1.1
-  EXPORT_NAME: Buckshot
 
 jobs:
   build:
@@ -21,65 +20,70 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          lfs: false
+          lfs: true
           submodules: false
 
-      - name: Cache Godot
-        id: cache-godot
-        uses: actions/cache@v4
-        with:
-          path: ~/godot
-          key: godot-${{ env.GODOT_VERSION }}-stable
+      - name: Verify LFS checkout
+        shell: bash
+        run: |
+          # If scenes/main.tscn is still the LFS pointer (134 bytes), LFS failed to fetch.
+          SZ=$(stat -f%z scenes/main.tscn 2>/dev/null || stat -c%s scenes/main.tscn)
+          echo "scenes/main.tscn = $SZ bytes"
+          if [ "$SZ" -lt 1000 ]; then
+            echo "ERROR: LFS pointer not hydrated — git lfs pull needed"
+            git lfs pull
+            SZ=$(stat -f%z scenes/main.tscn)
+            echo "after pull: $SZ bytes"
+          fi
 
       - name: Install Godot 4.1.1
-        if: steps.cache-godot.outputs.cache-hit != 'true'
         shell: bash
         run: |
           mkdir -p ~/godot
           cd ~/godot
-          # Godot 4.1.1 stable macOS (universal)
-          curl -L -o godot.zip "https://github.com/godotengine/godot/releases/download/4.1.1-stable/Godot_v4.1.1-stable_macos.universal.zip"
-          unzip -o godot.zip
-          rm godot.zip
-          # Zip's top-level entry is already Godot.app/ (no nested rename needed).
-          chmod +x Godot.app/Contents/MacOS/Godot 2>/dev/null || true
-          xattr -dr com.apple.quarantine Godot.app 2>/dev/null || true
-          echo "GODOT_PATH=$(pwd)/Godot.app/Contents/MacOS/Godot" >> $GITHUB_ENV
-
-      - name: Locate Godot
-        shell: bash
-        run: |
-          if [ ! -f "$GODOT_PATH" ]; then
-            GODOT_PATH="$HOME/godot/Godot.app/Contents/MacOS/Godot"
+          if [ ! -x "Godot.app/Contents/MacOS/Godot" ]; then
+            echo "Downloading Godot 4.1.1 stable (macOS universal)"
+            curl -L -o godot.zip "https://github.com/godotengine/godot/releases/download/4.1.1-stable/Godot_v4.1.1-stable_macos.universal.zip"
+            unzip -o godot.zip
+            rm godot.zip
+            chmod +x Godot.app/Contents/MacOS/Godot
+            xattr -dr com.apple.quarantine Godot.app 2>/dev/null || true
           fi
-          echo "GODOT_PATH=$GODOT_PATH" >> $GITHUB_ENV
+          echo "GODOT_PATH=$(pwd)/Godot.app/Contents/MacOS/Godot" >> $GITHUB_ENV
           "$GODOT_PATH" --version
 
-      - name: Import project + generate ETC2/ASTC
+      - name: Install iOS export templates
         shell: bash
         run: |
-          # Skip reimport when cache is present: .godot/imported/ already contains
-          # the converted .scn + ETC2/ASTC .ctex variants. Re-running --import
-          # on 166 mesh files takes 10+ minutes and rarely produces new output.
-          # We only run --import on first checkout (cache miss).
-          if [ ! -f ".godot/imported/shotgun with hands2.glb-179598454fcdf296820edfb8e62f1605.scn" ]; then
-            echo "Cache miss — running full --import"
-            "$GODOT_PATH" --headless --path . --import 2>&1 | tail -50
-          else
-            echo "Cache present — verifying ETC2/ASTC are present"
-            ETC2=$(find .godot/imported -name "*.etc2.ctex" 2>/dev/null | wc -l | tr -d ' ')
-            ASTC=$(find .godot/imported -name "*.astc.ctex" 2>/dev/null | wc -l | tr -d ' ')
-            echo "ETC2=$ETC2 ASTC=$ASTC"
-            if [ "$ETC2" = "0" ] && [ "$ASTC" = "0" ]; then
-              echo "Cache present but no ETC2/ASTC — running forced reimport"
-              "$GODOT_PATH" --headless --path . --import 2>&1 | tail -50
-            fi
+          TEMPLATES="$HOME/Library/Application Support/Godot/export_templates/$GODOT_VERSION.stable"
+          if [ ! -d "$TEMPLATES" ]; then
+            echo "Downloading iOS export templates"
+            curl -L -o templates.tpz "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+            mkdir -p "$TEMPLATES"
+            cd /tmp && rm -rf godot_tpl && mkdir godot_tpl && cd godot_tpl
+            unzip -q -o ../templates.tpz
+            cp -r templates/* "$TEMPLATES/"
+            cd /tmp && rm -rf godot_tpl templates.tpz
+          fi
+          ls "$TEMPLATES" | head -5
+
+      - name: Skip --import (cache already valid)
+        shell: bash
+        run: |
+          # CRITICAL: All .glb files are 660-byte empty stubs. Real geometry lives in
+          # .godot/imported/*.scn cache which we ship in the repo. Godot's --import
+          # would re-import the empty stubs and DESTROY the cache. Do NOT run --import.
+          SCN_COUNT=$(find .godot/imported -name "*.scn" 2>/dev/null | wc -l | tr -d ' ')
+          CTEX_COUNT=$(find .godot/imported -name "*.ctex" 2>/dev/null | wc -l | tr -d ' ')
+          echo "Cache: $SCN_COUNT .scn (mesh) + $CTEX_COUNT .ctex (textures)"
+          if [ "$SCN_COUNT" -lt 100 ] || [ "$CTEX_COUNT" -lt 500 ]; then
+            echo "ERROR: cache looks incomplete — LFS pull likely failed"
+            exit 1
           fi
 
-      - name: Sanity-check mesh cache
+      - name: Sanity-check critical mesh cache
         shell: bash
         run: |
-          # Spot-check 5 critical models (not all 166 — too slow).
           for glb in "shotgun with hands2.glb" "tabletop export6.glb" "dealer head rigged1.glb" "dealer hands main1.glb" "shotgun shells export1.glb"; do
             stem=$(echo "$glb" | sed 's/\.glb$//')
             scn=$(find .godot/imported -name "${stem}*.scn" 2>/dev/null | head -1)
@@ -89,35 +93,14 @@ jobs:
             fi
             sz=$(stat -f%z "$scn" 2>/dev/null || stat -c%s "$scn")
             echo "$glb → $scn ($sz bytes)"
-            if [ "$sz" -lt 10000 ]; then
-              echo "TOO SMALL — reimport likely destroyed cache"
-              exit 1
-            fi
           done
 
       - name: Export iOS Xcode project
         shell: bash
         run: |
-          # Strip multiplayer content from the exported project (live source kept in repo
-          # for future multiplayer restore; iOS build has none).
-          "$GODOT_PATH" --headless --path . --export-debug "iOS" builds/buckshot.xcodeproj 2>&1 | tail -50 || \
+          mkdir -p builds
           "$GODOT_PATH" --headless --path . --export-release "iOS" builds/buckshot.xcodeproj 2>&1 | tail -50
           ls -la builds/
-
-      - name: Install iOS export templates
-        if: always()
-        shell: bash
-        run: |
-          # Needed for the --export-debug/release "iOS" target.
-          TEMPLATES="$HOME/Library/Application Support/Godot/export_templates/$GODOT_VERSION.stable"
-          if [ ! -d "$TEMPLATES" ]; then
-            curl -L -o templates.zip "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
-            mkdir -p "$TEMPLATES"
-            unzip -q -o templates.zip -d /tmp/godot_templates
-            cp -r /tmp/godot_templates/templates/* "$TEMPLATES/"
-            rm -rf /tmp/godot_templates templates.zip
-          fi
-          ls "$TEMPLATES" | head -5
 
       - name: Install provisioning profile
         shell: bash
@@ -127,9 +110,6 @@ jobs:
           if [ -n "$IOS_PROVISION_PROFILE_BASE64" ]; then
             mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
             echo "$IOS_PROVISION_PROFILE_BASE64" | base64 -d > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
-            echo "Profile installed"
-          else
-            echo "WARNING: no IOS_PROVISION_PROFILE_BASE64 secret — ad-hoc only"
           fi
 
       - name: Import signing certificate
@@ -147,29 +127,9 @@ jobs:
             security list-keychains -d user -s "$KEYCHAIN_PATH"
             echo "$IOS_P12_BASE64" | base64 -d > "$RUNNER_TEMP/cert.p12"
             security import "$RUNNER_TEMP/cert.p12" -P "$IOS_P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
-            security find-identity -v -p codesigning "$KEYCHAIN_PATH"
             echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
             echo "KEYCHAIN_PASSWORD=$KEYCHAIN_PASSWORD" >> $GITHUB_ENV
           fi
-
-      - name: Patch Xcode project signing
-        shell: bash
-        run: |
-          PROJECT="builds/buckshot.xcodeproj/project.pbxproj"
-          if [ ! -f "$PROJECT" ]; then
-            echo "ERROR: pbxproj not found at $PROJECT"
-            ls -R builds/
-            exit 1
-          fi
-          # Default the project to manual signing + ad-hoc identity so unsigned builds succeed.
-          # Real CI override below swaps in the identity from secrets.
-          if [ -n "$IOS_P12_BASE64" ]; then
-            IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | head -1 | sed -n 's/.*"\(.*\)".*/\1/p')
-            echo "Using identity: $IDENTITY"
-          fi
-          # Add Bundle ID + version so the archive step has a valid Info.plist
-          grep -q "PRODUCT_BUNDLE_IDENTIFIER" "$PROJECT" || \
-            /usr/libexec/PlistBuddy -c "Add :PRODUCT_BUNDLE_IDENTIFIER string com.B5xPo.9xnOT" "${PROJECT%.pbxproj}/project.pbxproj" 2>/dev/null || true
 
       - name: Build & sign .ipa
         shell: bash
@@ -188,16 +148,24 @@ jobs:
               CODE_SIGN_IDENTITY="$IDENTITY" \
               CODE_SIGNING_REQUIRED=YES \
               CODE_SIGNING_ALLOWED=YES \
-              DEVELOPMENT_TEAM="" \
-              PROVISIONING_PROFILE_SPECIFIER="" \
               archive 2>&1 | tail -40
+            cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+<key>method</key><string>development</string>
+<key>signingStyle</key><string>manual</string>
+<key>teamID</key><string>${TEAM_ID}</string>
+</dict>
+</plist>
+EOF
             xcodebuild \
               -exportArchive \
               -archivePath "$RUNNER_TEMP/Buckshot.xcarchive" \
               -exportPath "$RUNNER_TEMP/ipa_out" \
-              -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" 2>&1 | tail -20 || true
+              -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" 2>&1 | tail -20
           else
-            # No cert — produce an unsigned archive so we at least prove the build chain works.
             xcodebuild \
               -project "$PROJECT" \
               -scheme "Buckshot" \
