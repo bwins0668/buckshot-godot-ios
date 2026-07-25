@@ -26,15 +26,25 @@ jobs:
       - name: Verify LFS checkout
         shell: bash
         run: |
-          # If scenes/main.tscn is still the LFS pointer (134 bytes), LFS failed to fetch.
-          SZ=$(stat -f%z scenes/main.tscn 2>/dev/null || stat -c%s scenes/main.tscn)
-          echo "scenes/main.tscn = $SZ bytes"
-          if [ "$SZ" -lt 1000 ]; then
-            echo "ERROR: LFS pointer not hydrated — git lfs pull needed"
-            git lfs pull
-            SZ=$(stat -f%z scenes/main.tscn)
-            echo "after pull: $SZ bytes"
-          fi
+          # CRITICAL: scenes/main.tscn is 132MB tracked by Git LFS.
+          # If hydrated as a 134-byte LFS pointer ("version https://git-lfs..."),
+          # Godot --export-release packs the pointer text into the PCK as
+          # scenes/main.tscn.remap, which is the known cause of the iOS black
+          # screen (runtime can't resolve main.tscn → blank viewport).
+          for path in scenes/main.tscn; do
+            SZ=$(stat -f%z "$path" 2>/dev/null || stat -c%s "$path" 2>/dev/null || echo 0)
+            HEAD=$(head -c 64 "$path" 2>/dev/null || true)
+            echo "  $path = $SZ bytes; head=${HEAD:0:60}"
+            if echo "$HEAD" | grep -q '^version https://git-lfs'; then
+              echo "::error::$path is still an LFS pointer (head matches 'version https://git-lfs')."
+              echo "::error::This is the known cause of the iOS black screen — abort."
+              exit 1
+            fi
+            if [ "$SZ" -lt 1000000 ]; then
+              echo "::error::$path is only $SZ bytes, expected ~132MB. LFS hydration failed."
+              exit 1
+            fi
+          done
 
       - name: Install Godot 4.1.1
         shell: bash
@@ -247,24 +257,33 @@ jobs:
         shell: bash
         continue-on-error: true
         run: |
-          # Purpose: actually run the .app Godot produced inside an iPhone Simulator
+          # Purpose: actually run the .app Godot produced inside an iPad Simulator
           # to surface crash reasons (exceptions, signal handlers, missing plist
           # entries, audio/init failures) that xcodebuild archive alone cannot.
-          # Soft-fails: the device .ipa build below still runs to completion.
+          # We pick an iPad (not iPhone) so the captured screenshot matches
+          # the real device aspect ratio and orientation (portrait) that the
+          # iPad user will see. iPhone sim puts the menu sideways.
           set -o pipefail
 
           BUNDLE_ID="com.B5xPo.9xnOT"
 
-          # 1. Pick an available iPhone simulator (15 -> 14 -> 13 fallback)
+          # 1. Pick an available iPad simulator (Pro 11 -> Air -> mini fallback)
           DEVICE_LINE=$(xcrun simctl list devices available 2>&1 \
-            | grep -E "iPhone (15|14|13)" \
+            | grep -E "iPad (Pro 11-inch|Air|mini)" \
             | grep -v "unavailable" \
             | head -1 || true)
           if [ -z "$DEVICE_LINE" ]; then
-            echo "::warning::No iPhone 13/14/15 simulator runtime on this runner; skipping smoke test."
+            echo "::warning::No iPad simulator runtime on this runner; falling back to iPhone."
+            DEVICE_LINE=$(xcrun simctl list devices available 2>&1 \
+              | grep -E "iPhone (15|14|13)" \
+              | grep -v "unavailable" \
+              | head -1 || true)
+          fi
+          if [ -z "$DEVICE_LINE" ]; then
+            echo "::warning::No iPhone/iPad simulator runtime on this runner; skipping smoke test."
             xcrun simctl list devices available 2>&1 | head -20 || true
             : > "$RUNNER_TEMP/sim.log"
-            echo "[no iPhone simulator runtime installed]" > "$RUNNER_TEMP/sim.log"
+            echo "[no iPhone/iPad simulator runtime installed]" > "$RUNNER_TEMP/sim.log"
             exit 0
           fi
           echo "Selected: $DEVICE_LINE"
@@ -328,22 +347,37 @@ jobs:
           # 4. Install on the booted simulator
           xcrun simctl install "$DEVICE_UDID" "$SIM_APP"
 
+          # 4b. Force portrait orientation via simctl status_bar (signal to
+          # the SpringBoard that the app wants portrait). Godot 4 iOS export
+          # reads this on startup; if we skip it the sim may default to
+          # landscape and the menu will appear sideways.
+          xcrun simctl status_bar "$DEVICE_UDID" override --time 12:00 2>/dev/null || true
+          xcrun simctl ui "$DEVICE_UDID" appearance dark 2>/dev/null || true
+
           # 5. Launch with PTY console (backgrounded so we can screenshot first)
           : > "$RUNNER_TEMP/sim.log"
           xcrun simctl launch --console-pty "$DEVICE_UDID" "$BUNDLE_ID" \
             > "$RUNNER_TEMP/sim.log" 2>&1 &
           LAUNCH_PID=$!
 
-          # 6. Wait for Godot to init or crash hard
-          sleep 10
+          # 6. Wait long enough for Godot to load main.tscn + show the menu
+          # and (if possible) the first batch of the campaign. 18s is enough
+          # on the 4.1.1 universal templates; bump to 25s if we start seeing
+          # the screenshot is still the splash.
+          sleep 18
 
-          # 7. Screenshot the current frame
+          # 7. Screenshot the current frame (portrait orientation)
           xcrun simctl io "$DEVICE_UDID" screenshot "$RUNNER_TEMP/sim.png" 2>&1 || true
+
+          # 7b. Second screenshot 8s later — if first was splash, second may
+          # show the menu with menu items, or the campaign batch 1 intro.
+          sleep 8
+          xcrun simctl io "$DEVICE_UDID" screenshot "$RUNNER_TEMP/sim2.png" 2>&1 || true
 
           # 8. Snapshot device syslog filtered to our process
           xcrun simctl spawn "$DEVICE_UDID" log show \
             --predicate "process == \"buckshot\" OR senderImagePath CONTAINS \"Godot\"" \
-            --last 1m \
+            --last 2m \
             --style compact \
             > "$RUNNER_TEMP/sim-syslog.txt" 2>&1 || true
 
@@ -377,6 +411,7 @@ jobs:
             ${{ runner.temp }}/sim-build.log
             ${{ runner.temp }}/sim.log
             ${{ runner.temp }}/sim.png
+            ${{ runner.temp }}/sim2.png
             ${{ runner.temp }}/sim-syslog.txt
             builds/
           if-no-files-found: warn
