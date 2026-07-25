@@ -1,0 +1,66 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://in8w2y53gb03"
+path="res://.godot/imported/shotgun shells export1.glb-bb4d9e273d5997991b1111b69c36a640.scn"
+
+
+[deps]
+
+source_file="res://models/shotgun shells/shotgun shells export1.glb"
+dest_files=["res://.godot/imported/shotgun shells export1.glb-bb4d9e273d5997991b1111b69c36a640.scn"]
+files=[
+"models/shotgun shells/metal defib device.png"
+"models/shotgun shells/shotgun shells export1_TexturesCom_MetalSheet_Aged_512_albedo.png"
+"models/shotgun shells/shotgun shells export1_TexturesCom_MetalSheet_Aged_512_normal.png"
+"models/shotgun shells/shotgun shells export1_TexturesCom_Metal_BronzeBare_512_albedo.png"
+"models/shotgun shells/shotgun shells export1_TexturesCom_Metal_BronzeBare_512_normal.png"
+"models/shotgun shells/shotgun shells export1_metal sheet blue.png"
+"models/shotgun shells/shotgun shells export1_metal sheet red.png"
+]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="shotgun shells export1"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+meshes/ensure_tangents=true
+meshes/generate_lods=true
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=false
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+_subresources={
+"meshes": {
+"shotgun shells export1_Cylinder_044": {
+"generate/lightmap_uv": 0,
+"generate/lods": 2,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"shotgun shells export1_Cylinder_045": {
+"generate/lightmap_uv": 0,
+"generate/lods": 2,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+}
+}
+}
+gltf/embedded_image_handling=1

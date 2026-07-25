@@ -1,0 +1,179 @@
+GDRE Tools v2.6.0
+Windows 10.0.26200, headless
+Opening file: G:/BDDL/Buckshot.Roulette.Build.16627782/Buckshot Roulette_windows/Buckshot Roulette.exe
+Guessing bytecode revision from engine version: 4.1.1 (rev 0x77af6ca)
+Loaded 1641 imported files
+Detected Engine Version: 4.1.1
+Detected Bytecode Revision: 4.3.0-stable (77af6ca)
+Successfully loaded PCK!
+Version: 4.1.1
+Verified 3572 files, no errors detected!
+Extracted 3572 files, no errors detected!
+Loading resource strings, this may take a while!!
+Resource strings loaded!
+Saved project config.
+
+
+********************************EXPORT REPORT********************************
+
+Totals:                                 
+Decompiled scripts:                     0
+Scripts not decompiled:                 0
+Imported resources for export session:  1641
+Successfully converted:                 1611
+Lossy:                                  875
+Rewrote metadata:                       1502
+Non-importable conversions:             0
+Not converted:                          0
+Failed conversions:                     30
+-------------
+
+------
+
+Failed conversions:
+* res://models/backroom blockout3/backroom blockout4.glb
+  * Errors during dependency resolution:
+  * Dependency res://models/backroom blockout3/backroom blockout4_TCom_WoodPlanksFloors0026_1_seamless_S.jpg -> res://models/backroom blockout3/backroom blockout4_TCom_WoodPlanksFloors0026_1_seamless_S.jpg does not exist.
+
+* res://models/backroom blockout5/backroom blockout6.glb
+  * Errors during dependency resolution:
+  * Dependency res://models/backroom blockout5/backroom blockout6_TCom_WoodPlanksFloors0026_1_seamless_S.jpg -> res://models/backroom blockout5/backroom blockout6_TCom_WoodPlanksFloors0026_1_seamless_S.jpg does not exist.
+
+* res://models/birthday hat/birthday hat1.glb
+  * Errors during dependency resolution:
+  * Dependency res://models/birthday hat/birthday hat1_birthday.jpg -> res://models/birthday hat/birthday hat1_birthday.jpg does not exist.
+
+* res://models/birthday hat/cake2.glb
+  * Errors during dependency resolution:
+  * Dependency res://models/birthday hat/cake2_soil-none-5i4x9p.jpg -> res://models/birthday hat/cake2_soil-none-5i4x9p.jpg does not exist.
+
+* res://models/crt sa11/crt sa1.glb
+  * Errors during dependency resolution:
+  * Dependency res://models/crt sa11/crt sa1_TCom_Grungemaps0164_1_S.jpg -> res://models/crt sa11/crt sa1_TCom_Grungemaps0164_1_S.jpg does not exist.
+
+* res://models/crt/crt main1.glb
+  * Errors during dependency resolution:
+  * Dependency res://models/crt/crt main1_TCom_Grungemaps0164_1_S.jpg -> res://models/crt/crt main1_TCom_Grungemaps0164_1_S.jpg does not exist.
+
+* res://models/dealer hand zippo/dealer hand_zippo.glb
+  * Errors during dependency resolution:
+  * Dependency res://models/dealer hand zippo/dealer hand_zippo_Asphalt007_1K_NormalGL.jpg -> res://models/dealer hand zippo/dealer hand_zippo_Asphalt007_1K_NormalGL.jpg does not exist.
+
+* res://models/lobby area1/lobby area blockout1.glb
+  * Errors during dependency resolution:
+  * Dependency res://models/lobby area1/lobby area blockout1_TCom_WoodPlanksFloors0026_1_seamless_S.jpg -> res://models/lobby area1/lobby area blockout1_TCom_WoodPlanksFloors0026_1_seamless_S.jpg does not exist.
+
+* res://models/lobby area2/lobby area blockout2.glb
+  * Errors during dependency resolution:
+  * Dependency res://models/lobby area2/lobby area blockout2_TCom_WoodPlanksFloors0026_1_seamless_S.jpg -> res://models/lobby area2/lobby area blockout2_TCom_WoodPlanksFloors0026_1_seamless_S.jpg does not exist.
+
+* res://models/lobby area3/lobby area blockout3.glb
+  * Errors during dependency resolution:
+  * Dependency res://models/lobby area3/lobby area blockout3_TCom_WoodPlanksFloors0026_1_seamless_S.jpg -> res://models/lobby area3/lobby area blockout3_TCom_WoodPlanksFloors0026_1_seamless_S.jpg does not exist.
+
+* res://models/lobby area4/lobby area blockout4.glb
+  * Errors during dependency resolution:
+  * Dependency res://models/lobby area4/lobby area blockout4_TCom_WoodPlanksFloors0026_1_seamless_S.jpg -> res://models/lobby area4/lobby area blockout4_TCom_WoodPlanksFloors0026_1_seamless_S.jpg does not exist.
+
+* res://models/lobby area5/lobby area blockout5.glb
+  * Errors during dependency resolution:
+  * Dependency res://models/lobby area5/lobby area blockout5_TCom_WoodPlanksFloors0026_1_seamless_S.jpg -> res://models/lobby area5/lobby area blockout5_TCom_WoodPlanksFloors0026_1_seamless_S.jpg does not exist.
+
+* res://models/main items/main items1.glb
+  * Errors during dependency resolution:
+  * Dependency res://models/main items/main items1_Asphalt007_1K_NormalGL.jpg -> res://models/main items/main items1_Asphalt007_1K_NormalGL.jpg does not exist.
+
+* res://models/makeship plushie/makeship plushie1.glb
+  * Errors during dependency resolution:
+  * Dependency res://models/makeship plushie/makeship plushie1_metal24 pump action painted.jpg -> res://models/makeship plushie/makeship plushie1_metal24 pump action painted.jpg does not exist.
+
+* res://models/player vehicle/player vehicle1.glb
+  * Errors during dependency resolution:
+  * Dependency res://models/player vehicle/player vehicle1_metal24 pump action painted.jpg -> res://models/player vehicle/player vehicle1_metal24 pump action painted.jpg does not exist.
+
+* res://models/restroom1/restroom1.glb
+  * Errors during dependency resolution:
+  * Dependency res://models/restroom1/restroom1_TCom_Grungemaps0164_1_S.jpg -> res://models/restroom1/restroom1_TCom_Grungemaps0164_1_S.jpg does not exist.
+
+* res://models/rpg shitpost/rpg shitpost1.glb
+  * Errors during dependency resolution:
+  * Dependency res://models/rpg shitpost/rpg shitpost1_Metal046B_1K-JPG_Color.jpg -> res://models/rpg shitpost/rpg shitpost1_Metal046B_1K-JPG_Color.jpg does not exist.
+
+* res://models/sample object/sample object export1.glb
+  * Errors during dependency resolution:
+  * Dependency res://models/sample object/sample object export1_Metal025_1K_Color.jpg -> res://models/sample object/sample object export1_Metal025_1K_Color.jpg does not exist.
+
+* res://models/shotgun new/shotgun with hands2.glb
+  * Errors during dependency resolution:
+  * Dependency res://models/shotgun new/shotgun with hands2_metal24 pump action painted.jpg -> res://models/shotgun new/shotgun with hands2_metal24 pump action painted.jpg does not exist.
+
+* res://models/tabletop export1/tabletop export1.glb
+  * Errors during dependency resolution:
+  * Dependency res://models/tabletop export1/tabletop export1_metal24 pump action painted.jpg -> res://models/tabletop export1/tabletop export1_metal24 pump action painted.jpg does not exist.
+
+* res://models/tabletop export1/tabletop export2.glb
+  * Errors during dependency resolution:
+  * Dependency res://models/tabletop export1/tabletop export2_metal24 pump action painted.jpg -> res://models/tabletop export1/tabletop export2_metal24 pump action painted.jpg does not exist.
+
+* res://models/tabletop export6/tabletop export6.glb
+  * Errors during dependency resolution:
+  * Dependency res://models/tabletop export6/tabletop export6_metal24 pump action painted.jpg -> res://models/tabletop export6/tabletop export6_metal24 pump action painted.jpg does not exist.
+
+* res://multiplayer/models/characters/placeholder characters1/placeholder characters1.glb
+  * Errors during dependency resolution:
+  * Dependency res://multiplayer/models/characters/placeholder characters1/placeholder characters1_metal24 pump action painted.jpg -> res://multiplayer/models/characters/placeholder characters1/placeholder characters1_metal24 pump action painted.jpg does not exist.
+
+* res://multiplayer/models/environments/exterior environment/exterior environment main1/exterior environment main1.glb
+  * Errors during dependency resolution:
+  * Dependency res://multiplayer/models/environments/exterior environment/exterior environment main1/exterior environment main1_Metal025_1K_Color.jpg -> res://multiplayer/models/environments/exterior environment/exterior environment main1/exterior environment main1_Metal025_1K_Color.jpg does not exist.
+
+* res://multiplayer/models/environments/interior environment/interior environment main1/interior environment main1.glb
+  * Errors during dependency resolution:
+  * Dependency res://multiplayer/models/environments/interior environment/interior environment main1/interior environment main1_metal_0018 darkened.jpg -> res://multiplayer/models/environments/interior environment/interior environment main1/interior environment main1_metal_0018 darkened.jpg does not exist.
+
+* res://multiplayer/models/items/mp_shotgun mesh base fixed1/mp_shotgun mesh base fixed1.glb
+  * Errors during dependency resolution:
+  * Dependency res://multiplayer/models/items/mp_shotgun mesh base fixed1/mp_shotgun mesh base fixed1_metal24 pump action painted.jpg -> res://multiplayer/models/items/mp_shotgun mesh base fixed1/mp_shotgun mesh base fixed1_metal24 pump action painted.jpg does not exist.
+
+* res://multiplayer/models/items/mp_shotgun mesh cut segment1/mp_shotgun mesh cut segment1.glb
+  * Errors during dependency resolution:
+  * Dependency res://multiplayer/models/items/mp_shotgun mesh cut segment1/mp_shotgun mesh cut segment1_metal24 pump action painted.jpg -> res://multiplayer/models/items/mp_shotgun mesh cut segment1/mp_shotgun mesh cut segment1_metal24 pump action painted.jpg does not exist.
+
+* res://multiplayer/models/items/shotgun main1/shotgun main1.glb
+  * Errors during dependency resolution:
+  * Dependency res://multiplayer/models/items/shotgun main1/shotgun main1_metal24 pump action painted.jpg -> res://multiplayer/models/items/shotgun main1/shotgun main1_metal24 pump action painted.jpg does not exist.
+
+* res://multiplayer/models/misc/orangefruit/orange3.glb
+  * Errors during dependency resolution:
+  * Dependency res://multiplayer/models/misc/orangefruit/orange3_leaf1.jpg -> res://multiplayer/models/misc/orangefruit/orange3_leaf1.jpg does not exist.
+
+* res://multiplayer/models/tabletops/shotgun test1/shotgun test1.glb
+  * Errors during dependency resolution:
+  * Dependency res://multiplayer/models/tabletops/shotgun test1/shotgun test1_metal24 pump action painted.jpg -> res://multiplayer/models/tabletops/shotgun test1/shotgun test1_metal24 pump action painted.jpg does not exist.
+
+
+
+
+---------------------------------IMPORTANT NOTES----------------------------------
+
+
+Translation Export Incomplete:
+Could not recover 1/113 keys for res://localization/Buckshot Roulette - Localization Sheet - Sheet47.csv
+Could not recover 7/196 keys for res://multiplayer/mp_localization/Buckshot Roulette - Localization Sheet - multiplayer24.csv
+
+
+------
+Scene Export in headless mode is limited:
+Some scenes can fail to export in headless mode. This is due to a limitation of the Godot engine.
+Retry without `--headless`. (CLI commands will still work in GUI mode.)
+
+
+
+------------------------------------------------------------------------------------
+
+Use Godot editor version 4.1.1 (Steam edition) to edit the project.
+GodotSteam can be found here: https://codeberg.org/GodotSteam/GodotSteam/releases 
+
+*******************************************************************************
+
+Recovery finished in 00m16s

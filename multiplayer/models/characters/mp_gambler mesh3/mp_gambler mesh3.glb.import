@@ -1,0 +1,41 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://bkirnndlypjth"
+path="res://.godot/imported/mp_gambler mesh3.glb-1f47716e3293763cf0dfbc5e5fd88066.scn"
+
+
+[deps]
+
+source_file="res://multiplayer/models/characters/mp_gambler mesh3/mp_gambler mesh3.glb"
+dest_files=["res://.godot/imported/mp_gambler mesh3.glb-1f47716e3293763cf0dfbc5e5fd88066.scn"]
+files=[
+"multiplayer/models/characters/mp_gambler mesh3/mp gambler skin2 - Copy.png"
+"multiplayer/models/characters/mp_gambler mesh3/mp_gambler mesh3_mp gambler skin2.png"
+"multiplayer/models/characters/mp_gambler mesh3/mp_gambler mesh3_mp_gambler teeth base1.png"
+]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="mp_gambler mesh3"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+meshes/ensure_tangents=true
+meshes/generate_lods=true
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=false
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+_subresources={}
+gltf/embedded_image_handling=1

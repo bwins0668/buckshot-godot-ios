@@ -1,0 +1,45 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://cutsnqrik6cax"
+path="res://.godot/imported/tabletop briefcase1.glb-92fcb3eba3004d2e1a0b8b7b9a9b6b79.scn"
+
+
+[deps]
+
+source_file="res://models/tabletop briefcase/tabletop briefcase1.glb"
+dest_files=["res://.godot/imported/tabletop briefcase1.glb-92fcb3eba3004d2e1a0b8b7b9a9b6b79.scn"]
+files=[
+"models/tabletop briefcase/tabletop briefcase1_carbon fiber albedo png.png"
+"models/tabletop briefcase/tabletop briefcase1_carbon fiber normal png.png"
+"models/tabletop briefcase/tabletop briefcase1_darkened png.png"
+"models/tabletop briefcase/tabletop briefcase1_metal sheet albedo darkened png.png"
+"models/tabletop briefcase/tabletop briefcase1_metal sheet normal.png"
+"models/tabletop briefcase/tabletop briefcase1_steel barred normal png.png"
+"models/tabletop briefcase/tabletop briefcase1_steel battered albedo png.png"
+]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="tabletop briefcase1"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+meshes/ensure_tangents=true
+meshes/generate_lods=true
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=false
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+_subresources={}
+gltf/embedded_image_handling=1

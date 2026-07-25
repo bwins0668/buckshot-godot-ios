@@ -1,0 +1,35 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://bxdk4euo2oqw2"
+path="res://.godot/imported/item grid indicator1.glb-6c3fc3c4e16a4e34d5e97fa6c7d36e5e.scn"
+
+[deps]
+
+source_file="res://models/item grid indicator/item grid indicator1.glb"
+dest_files=["res://.godot/imported/item grid indicator1.glb-6c3fc3c4e16a4e34d5e97fa6c7d36e5e.scn"]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="item grid indicator1"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+meshes/ensure_tangents=true
+meshes/generate_lods=false
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=true
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+_subresources={}
+gltf/embedded_image_handling=1

@@ -1,0 +1,94 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://bksvkcap3jveo"
+path="res://.godot/imported/mp_briefcase machine1.glb-45eea12823729f5a79e25c07e42b4ac7.scn"
+
+
+[deps]
+
+source_file="res://multiplayer/models/tabletops/mp_briefcase machine1/mp_briefcase machine1.glb"
+dest_files=["res://.godot/imported/mp_briefcase machine1.glb-45eea12823729f5a79e25c07e42b4ac7.scn"]
+files=[
+"multiplayer/models/tabletops/mp_briefcase machine1/mp_briefcase machine1_base metal_briefcase machine darkened3.png"
+"multiplayer/models/tabletops/mp_briefcase machine1/mp_briefcase machine1_base metal_briefcase machine.png"
+"multiplayer/models/tabletops/mp_briefcase machine1/mp_briefcase machine1_metal sheet briefcasen ew.png"
+"multiplayer/models/tabletops/mp_briefcase machine1/mp_briefcase machine1_money4.png"
+"multiplayer/models/tabletops/mp_briefcase machine1/mp_briefcase machine1_paper stack side money.png"
+"multiplayer/models/tabletops/mp_briefcase machine1/mp_briefcase machine1_suitsetamine keelatud.png"
+"multiplayer/models/tabletops/mp_briefcase machine1/mp_briefcase machine1_tabletop briefcase1_carbon fiber normal png.png"
+"multiplayer/models/tabletops/mp_briefcase machine1/mp_briefcase machine1_tabletop export6_carbon fiber albedo png.png"
+]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="mp_briefcase machine1"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+meshes/ensure_tangents=true
+meshes/generate_lods=false
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=false
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+_subresources={
+"meshes": {
+"mp_briefcase machine1_Cylinder_013": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"mp_briefcase machine1_Cylinder_014": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"mp_briefcase machine1_Cylinder_046": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"mp_briefcase machine1_Cylinder_049": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"mp_briefcase machine1_Cylinder_125": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+}
+}
+}
+gltf/embedded_image_handling=1

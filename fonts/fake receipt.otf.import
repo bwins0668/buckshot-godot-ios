@@ -1,0 +1,32 @@
+[remap]
+
+importer="font_data_dynamic"
+type="FontFile"
+uid="uid://vhj3kkn6yn8o"
+path="res://.godot/imported/fake receipt.otf-c8c50fa084fceb91a150024c0a391d05.fontdata"
+
+[deps]
+
+source_file="res://fonts/fake receipt.otf"
+dest_files=["res://.godot/imported/fake receipt.otf-c8c50fa084fceb91a150024c0a391d05.fontdata"]
+
+[params]
+
+Rendering=null
+antialiasing=1
+generate_mipmaps=false
+multichannel_signed_distance_field=false
+msdf_pixel_range=8
+msdf_size=48
+allow_system_fallback=false
+force_autohinter=false
+hinting=1
+oversampling=0.0
+Fallbacks=null
+fallbacks=[Resource("res://fonts/fonts language/NotoSansKR-Regular.ttf"), Resource("res://fonts/fonts language/NotoSansKR-Regular_korean_new.ttf"), Resource("res://fonts/fonts language/NotoSansJP-Regular_japanese_new.ttf"), Resource("res://fonts/fonts language/NotoSansSC-Regular_simplified chinese_new.ttf"), Resource("res://fonts/fonts language/NotoSansSC-Regular_simplified chinese_new.ttf"), Resource("res://fonts/fonts language/NotoSans-Regular_new.ttf"), Resource("res://fonts/Fake Receipt Cyr Ver2_2.ttf")]
+Compress=null
+compress=true
+preload=[]
+language_support={}
+script_support={}
+opentype_features={}

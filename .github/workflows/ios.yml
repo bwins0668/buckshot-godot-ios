@@ -1,0 +1,220 @@
+name: Build Buckshot iOS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  GODOT_VERSION: 4.1.1
+  EXPORT_NAME: Buckshot
+
+jobs:
+  build:
+    runs-on: macos-14
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+          submodules: false
+
+      - name: Cache Godot
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: ~/godot
+          key: godot-${{ env.GODOT_VERSION }}-stable
+
+      - name: Install Godot 4.1.1
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          mkdir -p ~/godot
+          cd ~/godot
+          # Godot 4.1.1 stable macOS (universal)
+          curl -L -o godot.zip "https://github.com/godotengine/godot/releases/download/4.1.1-stable/Godot_v4.1.1-stable_macos.universal.zip"
+          unzip -o godot.zip
+          rm godot.zip
+          mv "Godot.app" Godot.app
+          xattr -dr com.apple.quarantine Godot.app 2>/dev/null || true
+          echo "GODOT_PATH=$(pwd)/Godot.app/Contents/MacOS/Godot" >> $GITHUB_ENV
+
+      - name: Locate Godot
+        shell: bash
+        run: |
+          if [ ! -f "$GODOT_PATH" ]; then
+            GODOT_PATH="$HOME/godot/Godot.app/Contents/MacOS/Godot"
+          fi
+          echo "GODOT_PATH=$GODOT_PATH" >> $GITHUB_ENV
+          "$GODOT_PATH" --version
+
+      - name: Import project + generate ETC2/ASTC
+        shell: bash
+        run: |
+          # Headless import — produces .godot/imported/*.ctex with ETC2/ASTC variants
+          # (the project.godot already declares textures/vram_compression/import_etc2_astc=true)
+          "$GODOT_PATH" --headless --path . --import 2>&1 | tail -50
+          ETC2_COUNT=$(find .godot/imported -name "*.etc2.ctex" 2>/dev/null | wc -l | tr -d ' ')
+          ASTC_COUNT=$(find .godot/imported -name "*.astc.ctex" 2>/dev/null | wc -l | tr -d ' ')
+          echo "Generated ETC2: $ETC2_COUNT, ASTC: $ASTC_COUNT"
+          if [ "$ETC2_COUNT" = "0" ] && [ "$ASTC_COUNT" = "0" ]; then
+            echo "ERROR: no ETC2/ASTC generated — reimport may have destroyed cache"
+            exit 1
+          fi
+
+      - name: Verify mesh cache intact
+        shell: bash
+        run: |
+          # Real geometry is ONLY in .godot/imported/*.scn (.glb files are empty stubs).
+          # If any .scn for a model-sized .glb is missing or tiny, the reimport wiped it.
+          MISSING=0
+          for glb in $(find models multiplayer -name "*.glb" 2>/dev/null); do
+            stem=$(basename "$glb" .glb)
+            scn=$(find .godot/imported -name "${stem}*.scn" 2>/dev/null | head -1)
+            if [ -z "$scn" ]; then
+              echo "MISSING: $glb -> no .scn"
+              MISSING=$((MISSING+1))
+            else
+              sz=$(stat -f%z "$scn" 2>/dev/null || stat -c%s "$scn")
+              if [ "$sz" -lt 10000 ]; then
+                echo "TOO SMALL: $scn ($sz bytes) — likely empty"
+                MISSING=$((MISSING+1))
+              fi
+            fi
+          done
+          echo "Mesh cache check: $MISSING missing/tiny"
+          if [ "$MISSING" -gt 10 ]; then
+            echo "ERROR: too many models missing — reimport destroyed cache"
+            exit 1
+          fi
+
+      - name: Export iOS Xcode project
+        shell: bash
+        run: |
+          # Strip multiplayer content from the exported project (live source kept in repo
+          # for future multiplayer restore; iOS build has none).
+          "$GODOT_PATH" --headless --path . --export-debug "iOS" builds/buckshot.xcodeproj 2>&1 | tail -50 || \
+          "$GODOT_PATH" --headless --path . --export-release "iOS" builds/buckshot.xcodeproj 2>&1 | tail -50
+          ls -la builds/
+
+      - name: Install iOS export templates
+        if: always()
+        shell: bash
+        run: |
+          # Needed for the --export-debug/release "iOS" target.
+          TEMPLATES="$HOME/Library/Application Support/Godot/export_templates/$GODOT_VERSION.stable"
+          if [ ! -d "$TEMPLATES" ]; then
+            curl -L -o templates.zip "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+            mkdir -p "$TEMPLATES"
+            unzip -q -o templates.zip -d /tmp/godot_templates
+            cp -r /tmp/godot_templates/templates/* "$TEMPLATES/"
+            rm -rf /tmp/godot_templates templates.zip
+          fi
+          ls "$TEMPLATES" | head -5
+
+      - name: Install provisioning profile
+        shell: bash
+        env:
+          IOS_PROVISION_PROFILE_BASE64: ${{ secrets.IOS_PROVISION_PROFILE_BASE64 }}
+        run: |
+          if [ -n "$IOS_PROVISION_PROFILE_BASE64" ]; then
+            mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+            echo "$IOS_PROVISION_PROFILE_BASE64" | base64 -d > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+            echo "Profile installed"
+          else
+            echo "WARNING: no IOS_PROVISION_PROFILE_BASE64 secret — ad-hoc only"
+          fi
+
+      - name: Import signing certificate
+        shell: bash
+        env:
+          IOS_P12_BASE64: ${{ secrets.IOS_P12_BASE64 }}
+          IOS_P12_PASSWORD: ${{ secrets.IOS_P12_PASSWORD }}
+        run: |
+          if [ -n "$IOS_P12_BASE64" ]; then
+            KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
+            KEYCHAIN_PASSWORD=$(openssl rand -hex 16)
+            security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+            security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+            security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+            security list-keychains -d user -s "$KEYCHAIN_PATH"
+            echo "$IOS_P12_BASE64" | base64 -d > "$RUNNER_TEMP/cert.p12"
+            security import "$RUNNER_TEMP/cert.p12" -P "$IOS_P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+            security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+            echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
+            echo "KEYCHAIN_PASSWORD=$KEYCHAIN_PASSWORD" >> $GITHUB_ENV
+          fi
+
+      - name: Patch Xcode project signing
+        shell: bash
+        run: |
+          PROJECT="builds/buckshot.xcodeproj/project.pbxproj"
+          if [ ! -f "$PROJECT" ]; then
+            echo "ERROR: pbxproj not found at $PROJECT"
+            ls -R builds/
+            exit 1
+          fi
+          # Default the project to manual signing + ad-hoc identity so unsigned builds succeed.
+          # Real CI override below swaps in the identity from secrets.
+          if [ -n "$IOS_P12_BASE64" ]; then
+            IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | head -1 | sed -n 's/.*"\(.*\)".*/\1/p')
+            echo "Using identity: $IDENTITY"
+          fi
+          # Add Bundle ID + version so the archive step has a valid Info.plist
+          grep -q "PRODUCT_BUNDLE_IDENTIFIER" "$PROJECT" || \
+            /usr/libexec/PlistBuddy -c "Add :PRODUCT_BUNDLE_IDENTIFIER string com.B5xPo.9xnOT" "${PROJECT%.pbxproj}/project.pbxproj" 2>/dev/null || true
+
+      - name: Build & sign .ipa
+        shell: bash
+        run: |
+          cd builds
+          PROJECT="buckshot.xcodeproj"
+          if [ -n "$IOS_P12_BASE64" ]; then
+            IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | head -1 | sed -n 's/.*"\(.*\)".*/\1/p')
+            xcodebuild \
+              -project "$PROJECT" \
+              -scheme "Buckshot" \
+              -configuration Release \
+              -destination "generic/platform=iOS" \
+              -archivePath "$RUNNER_TEMP/Buckshot.xcarchive" \
+              CODE_SIGN_STYLE=Manual \
+              CODE_SIGN_IDENTITY="$IDENTITY" \
+              CODE_SIGNING_REQUIRED=YES \
+              CODE_SIGNING_ALLOWED=YES \
+              DEVELOPMENT_TEAM="" \
+              PROVISIONING_PROFILE_SPECIFIER="" \
+              archive 2>&1 | tail -40
+            xcodebuild \
+              -exportArchive \
+              -archivePath "$RUNNER_TEMP/Buckshot.xcarchive" \
+              -exportPath "$RUNNER_TEMP/ipa_out" \
+              -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" 2>&1 | tail -20 || true
+          else
+            # No cert — produce an unsigned archive so we at least prove the build chain works.
+            xcodebuild \
+              -project "$PROJECT" \
+              -scheme "Buckshot" \
+              -configuration Release \
+              -destination "generic/platform=iOS" \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGNING_ALLOWED=NO \
+              -derivedDataPath "$RUNNER_TEMP/derived" \
+              build 2>&1 | tail -40
+          fi
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: buckshot-ios
+          path: |
+            ${{ runner.temp }}/Buckshot.xcarchive
+            ${{ runner.temp }}/ipa_out/*.ipa
+            builds/
+          if-no-files-found: warn

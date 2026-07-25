@@ -1,0 +1,53 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://k3dc08cyekrq"
+path="res://.godot/imported/shell waterfall2.glb-0bebf283d4ffce654180a92ab48c841e.scn"
+
+
+[deps]
+
+source_file="res://models/shell waterfall/shell waterfall2.glb"
+dest_files=["res://.godot/imported/shell waterfall2.glb-0bebf283d4ffce654180a92ab48c841e.scn"]
+files=[
+"models/shell waterfall/shell waterfall2_TexturesCom_MetalSheet_Aged_512_normal.png"
+"models/shell waterfall/shell waterfall2_TexturesCom_Metal_BronzeBare_512_albedo.png"
+"models/shell waterfall/shell waterfall2_TexturesCom_Metal_BronzeBare_512_normal.png"
+"models/shell waterfall/shell waterfall2_metal sheet blue.png"
+"models/shell waterfall/shell waterfall2_metal sheet red new.png"
+]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="shell waterfall2"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+meshes/ensure_tangents=true
+meshes/generate_lods=true
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=false
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+_subresources={
+"animations": {
+"main action": {
+"save_to_file/enabled": false,
+"save_to_file/keep_custom_tracks": false,
+"save_to_file/path": "",
+"settings/loop_mode": 1,
+"slices/amount": 0
+}
+}
+}
+gltf/embedded_image_handling=1

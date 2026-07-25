@@ -1,0 +1,26 @@
+# Godot 4+ specific ignores
+.import/
+
+# Imported translations (automatically generated from CSV files)
+*.translation
+
+# Mono-specific ignores
+.mono/
+data_*/
+mono_crash.*.json
+.bricks/
+build/
+obj/
+*.user
+.vs/
+
+# System/tool-specific ignores
+.directory
+*~
+
+# Godot-specific ignores
+*.gd.uid
+
+# KEEP .godot/imported/ in repo: all 166 .glb files are 660-byte empty stubs.
+# The real geometry + ETC2/S3TC textures live ONLY in this cache. Cloud CI
+# would otherwise reimport the empty stubs into empty .scn files.

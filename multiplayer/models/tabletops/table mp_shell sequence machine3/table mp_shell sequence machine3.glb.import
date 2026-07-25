@@ -1,0 +1,181 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://bc8xlwi4abvpt"
+path="res://.godot/imported/table mp_shell sequence machine3.glb-ebd13716c5788387abc1484c14152d27.scn"
+
+
+[deps]
+
+source_file="res://multiplayer/models/tabletops/table mp_shell sequence machine3/table mp_shell sequence machine3.glb"
+dest_files=["res://.godot/imported/table mp_shell sequence machine3.glb-ebd13716c5788387abc1484c14152d27.scn"]
+files=[
+"multiplayer/models/tabletops/table mp_shell sequence machine3/table mp_shell sequence machine3_Metal023_1K-JPG_Color_edited.png"
+"multiplayer/models/tabletops/table mp_shell sequence machine3/table mp_shell sequence machine3_metal sheet shell sequence machine base13.png"
+"multiplayer/models/tabletops/table mp_shell sequence machine3/table mp_shell sequence machine3_metal sheet shell sequence machine under padding base1.png"
+"multiplayer/models/tabletops/table mp_shell sequence machine3/table mp_shell sequence machine3_metal sheet shell sequence machine upper base1.png"
+"multiplayer/models/tabletops/table mp_shell sequence machine3/table mp_shell sequence machine3_tabletop felt highres9.png"
+]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="table mp_shell sequence machine3"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+meshes/ensure_tangents=true
+meshes/generate_lods=false
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=false
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+_subresources={
+"meshes": {
+"table mp_shell sequence machine3_Cube_007": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"table mp_shell sequence machine3_Cube_021": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"table mp_shell sequence machine3_Cube_022": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"table mp_shell sequence machine3_Cube_023": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"table mp_shell sequence machine3_Cube_077": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"table mp_shell sequence machine3_Cube_080": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"table mp_shell sequence machine3_Cylinder_071": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"table mp_shell sequence machine3_Cylinder_078": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"table mp_shell sequence machine3_Cylinder_080": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"table mp_shell sequence machine3_Cylinder_082": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"table mp_shell sequence machine3_Cylinder_084": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"table mp_shell sequence machine3_Cylinder_086": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"table mp_shell sequence machine3_Cylinder_088": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"table mp_shell sequence machine3_Cylinder_091": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"table mp_shell sequence machine3_tablletop main1_019": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+}
+}
+}
+gltf/embedded_image_handling=1

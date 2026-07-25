@@ -1,0 +1,69 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://cbh47atl0vgt4"
+path="res://.godot/imported/tabletop compartment origins fix2.glb-95372bbd0ead0335b3df7a01fc25b16b.scn"
+
+
+[deps]
+
+source_file="res://models/tabletop compartment origins2/tabletop compartment origins fix2.glb"
+dest_files=["res://.godot/imported/tabletop compartment origins fix2.glb-95372bbd0ead0335b3df7a01fc25b16b.scn"]
+files=[
+"models/tabletop compartment origins2/tabletop compartment origins fix2_TCom_Wood_Worn2_512_normal.png"
+"models/tabletop compartment origins2/tabletop compartment origins fix2_TexturesCom_WornMetal_512_normal.png"
+"models/tabletop compartment origins2/tabletop compartment origins fix2_tabletop felt normal.png"
+"models/tabletop compartment origins2/tabletop compartment origins fix2_tabletop felt shell compartment.png"
+"models/tabletop compartment origins2/tabletop compartment origins fix2_tabletop felt shotgun radius compartment2.png"
+"models/tabletop compartment origins2/tabletop compartment origins fix2_tabletop felt shotgun radius with lines greyed out.png"
+"models/tabletop compartment origins2/tabletop compartment origins fix2_tabletop felt shotgun radius wo lines.png"
+"models/tabletop compartment origins2/tabletop compartment origins fix2_tabletop felt_without lines.png"
+"models/tabletop compartment origins2/tabletop compartment origins fix2_wood worn albedo.png"
+"models/tabletop compartment origins2/tabletop compartment origins fix2_worn bare darkened.png"
+]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="tabletop compartment origins fix2"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+meshes/ensure_tangents=true
+meshes/generate_lods=true
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=false
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+_subresources={
+"meshes": {
+"tabletop compartment origins fix2_Plane_032": {
+"generate/lightmap_uv": 0,
+"generate/lods": 2,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"tabletop compartment origins fix2_Plane_037": {
+"generate/lightmap_uv": 0,
+"generate/lods": 2,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+}
+}
+}
+gltf/embedded_image_handling=1

@@ -1,0 +1,43 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://oxsuiceob6pw"
+path="res://.godot/imported/interior environment wall separate1.glb-9c44355f396cc3fe2f53c6f8ce611d18.scn"
+
+
+[deps]
+
+source_file="res://multiplayer/models/environments/interior environment/interior environment wall separate1/interior environment wall separate1.glb"
+dest_files=["res://.godot/imported/interior environment wall separate1.glb-9c44355f396cc3fe2f53c6f8ce611d18.scn"]
+files=[
+"multiplayer/models/environments/interior environment/interior environment wall separate1/interior environment wall separate1_brick 2048 edited_left side1.png"
+"multiplayer/models/environments/interior environment/interior environment wall separate1/interior environment wall separate1_brick 2048 edited_side2.png"
+"multiplayer/models/environments/interior environment/interior environment wall separate1/interior environment wall separate1_concrete dark1.png"
+"multiplayer/models/environments/interior environment/interior environment wall separate1/interior environment wall separate1_concrete dark1_copy window.png"
+"multiplayer/models/environments/interior environment/interior environment wall separate1/interior environment wall separate1_outlet1.png"
+]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="interior environment wall separate1"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+meshes/ensure_tangents=true
+meshes/generate_lods=true
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=false
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+_subresources={}
+gltf/embedded_image_handling=1

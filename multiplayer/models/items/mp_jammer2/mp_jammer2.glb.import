@@ -1,0 +1,60 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://dnj21ntvktvdk"
+path="res://.godot/imported/mp_jammer2.glb-29fdcff1c3c7e3e355f72801335a7e7d.scn"
+
+
+[deps]
+
+source_file="res://multiplayer/models/items/mp_jammer2/mp_jammer2.glb"
+dest_files=["res://.godot/imported/mp_jammer2.glb-29fdcff1c3c7e3e355f72801335a7e7d.scn"]
+files=[
+"multiplayer/models/items/mp_jammer2/mp_jammer2_jammer4.png"
+]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="mp_jammer2"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+meshes/ensure_tangents=true
+meshes/generate_lods=false
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=false
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+_subresources={
+"meshes": {
+"mp_jammer2_Cube_012": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"mp_jammer2_jammer1": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+}
+}
+}
+gltf/embedded_image_handling=1

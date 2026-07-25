@@ -1,0 +1,35 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://brfb4rbgmcero"
+path="res://.godot/imported/mp_customization temp_hand wire3.glb-0822cf1c58d173dc5248ccc9567407a9.scn"
+
+[deps]
+
+source_file="res://multiplayer/instances/main hand instances/mp_customization temp_hand wire3/mp_customization temp_hand wire3.glb"
+dest_files=["res://.godot/imported/mp_customization temp_hand wire3.glb-0822cf1c58d173dc5248ccc9567407a9.scn"]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="mp_customization temp_hand wire3"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+meshes/ensure_tangents=true
+meshes/generate_lods=true
+meshes/create_shadow_meshes=false
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=true
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+_subresources={}
+gltf/embedded_image_handling=1

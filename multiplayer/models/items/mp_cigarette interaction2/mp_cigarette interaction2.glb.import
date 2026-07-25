@@ -1,0 +1,85 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://c1u0ulp00bobv"
+path="res://.godot/imported/mp_cigarette interaction2.glb-947afa181d9fa75627ca1b8d817e136c.scn"
+
+
+[deps]
+
+source_file="res://multiplayer/models/items/mp_cigarette interaction2/mp_cigarette interaction2.glb"
+dest_files=["res://.godot/imported/mp_cigarette interaction2.glb-947afa181d9fa75627ca1b8d817e136c.scn"]
+files=[
+"multiplayer/models/items/mp_cigarette interaction2/mp_cigarette interaction2_TexturesCom_MetalSheet_Aged_512_normal.png"
+"multiplayer/models/items/mp_cigarette interaction2/mp_cigarette interaction2_cig box front 2.png"
+"multiplayer/models/items/mp_cigarette interaction2/mp_cigarette interaction2_cig box side2.png"
+"multiplayer/models/items/mp_cigarette interaction2/mp_cigarette interaction2_cigarette.png"
+"multiplayer/models/items/mp_cigarette interaction2/mp_cigarette interaction2_health counter metal.png"
+"multiplayer/models/items/mp_cigarette interaction2/mp_cigarette interaction2_jet flame2.png"
+"multiplayer/models/items/mp_cigarette interaction2/mp_cigarette interaction2_plastic base zippo.png"
+"multiplayer/models/items/mp_cigarette interaction2/mp_cigarette interaction2_zippo steel base.png"
+]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="mp_cigarette interaction2"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+meshes/ensure_tangents=true
+meshes/generate_lods=true
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=false
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+_subresources={
+"meshes": {
+"mp_cigarette interaction2_cig box2_001": {
+"generate/lightmap_uv": 0,
+"generate/lods": 2,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"mp_cigarette interaction2_cig box2_004": {
+"generate/lightmap_uv": 0,
+"generate/lods": 2,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"mp_cigarette interaction2_jet flame1": {
+"generate/lightmap_uv": 0,
+"generate/lods": 2,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"mp_cigarette interaction2_jet flame1_005": {
+"generate/lightmap_uv": 0,
+"generate/lods": 2,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+}
+}
+}
+gltf/embedded_image_handling=1

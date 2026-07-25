@@ -1,0 +1,42 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://1l6e5mwlkj8w"
+path="res://.godot/imported/adrenalline without pointers1.glb-acdae1d962f73923e956f00a4828051e.scn"
+
+
+[deps]
+
+source_file="res://models/adrenaline without pointers/adrenalline without pointers1.glb"
+dest_files=["res://.godot/imported/adrenalline without pointers1.glb-acdae1d962f73923e956f00a4828051e.scn"]
+files=[
+"models/adrenaline without pointers/adrenalline without pointers1_aehathateh.png"
+"models/adrenaline without pointers/adrenalline without pointers1_brass albedo1.png"
+"models/adrenaline without pointers/adrenalline without pointers1_syringe test2.png"
+"models/adrenaline without pointers/adrenalline without pointers1_valve thing.png"
+]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="adrenalline without pointers1"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+meshes/ensure_tangents=true
+meshes/generate_lods=true
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=false
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+_subresources={}
+gltf/embedded_image_handling=1

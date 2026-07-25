@@ -1,0 +1,35 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://408sly7jvynm"
+path="res://.godot/imported/user inspect object1.glb-dee6dfa4e8bfd2b37f00a0a79822320b.scn"
+
+[deps]
+
+source_file="res://multiplayer/models/tabletops/user inspect object1/user inspect object1.glb"
+dest_files=["res://.godot/imported/user inspect object1.glb-dee6dfa4e8bfd2b37f00a0a79822320b.scn"]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="user inspect object1"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+meshes/ensure_tangents=true
+meshes/generate_lods=false
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=true
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+_subresources={}
+gltf/embedded_image_handling=1

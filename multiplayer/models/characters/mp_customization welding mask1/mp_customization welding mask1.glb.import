@@ -1,0 +1,42 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://dulvtjf15gu6i"
+path="res://.godot/imported/mp_customization welding mask1.glb-74c96fd7111a95ccd680d84d43214812.scn"
+
+
+[deps]
+
+source_file="res://multiplayer/models/characters/mp_customization welding mask1/mp_customization welding mask1.glb"
+dest_files=["res://.godot/imported/mp_customization welding mask1.glb-74c96fd7111a95ccd680d84d43214812.scn"]
+files=[
+"multiplayer/models/characters/mp_customization welding mask1/mp_customization welding mask1_mp gambler skin_welding mask.png"
+"multiplayer/models/characters/mp_customization welding mask1/mp_customization welding mask1_mp_gambler teeth base1.png"
+"multiplayer/models/characters/mp_customization welding mask1/mp_customization welding mask1_strap1.png"
+"multiplayer/models/characters/mp_customization welding mask1/mp_customization welding mask1_welding mask base2.png"
+]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="mp_customization welding mask1"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+meshes/ensure_tangents=true
+meshes/generate_lods=true
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=false
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+_subresources={}
+gltf/embedded_image_handling=1

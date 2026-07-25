@@ -1,0 +1,24 @@
+[gd_resource type="Environment" load_steps=3 format=3 uid="uid://cucsg3ijsfamb"]
+
+[ext_resource type="Material" uid="uid://db61jslwbwqe1" path="res://multiplayer/misc/mp_sky shader.tres" id="1"]
+
+[sub_resource type="Sky" id="Sky_dts7t"]
+sky_material = ExtResource("1")
+
+[resource]
+background_mode = 2
+background_energy_multiplier = 0.26
+sky = SubResource("Sky_dts7t")
+sky_rotation = Vector3(0, -2.60927, 0)
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_sky_contribution = 0.0
+ambient_light_energy = 0.0
+tonemap_mode = 3
+fog_light_color = Color(0.611765, 0, 0.0784314, 1)
+fog_light_energy = 0.4
+fog_density = 0.0055
+volumetric_fog_length = 1.97
+adjustment_enabled = true
+adjustment_brightness = 1.49
+adjustment_contrast = 0.85
+adjustment_saturation = 0.3

@@ -1,0 +1,71 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://c0nb33yt0irqp"
+path="res://.godot/imported/tabletop standalone export2.glb-31dad7bf13e15be224f39acb7a24da6a.scn"
+
+
+[deps]
+
+source_file="res://models/tabletop standalone2/tabletop standalone export2.glb"
+dest_files=["res://.godot/imported/tabletop standalone export2.glb-31dad7bf13e15be224f39acb7a24da6a.scn"]
+files=[
+"models/tabletop standalone2/tabletop standalone export2_TCom_Wood_Worn2_512_normal.png"
+"models/tabletop standalone2/tabletop standalone export2_TexturesCom_WornMetal_512_normal.png"
+"models/tabletop standalone2/tabletop standalone export2_tabletop felt normal.png"
+"models/tabletop standalone2/tabletop standalone export2_tabletop felt shell compartment.png"
+"models/tabletop standalone2/tabletop standalone export2_tabletop felt shotgun radius compartment2.png"
+"models/tabletop standalone2/tabletop standalone export2_tabletop felt shotgun radius with lines greyed out flippeed.png"
+"models/tabletop standalone2/tabletop standalone export2_tabletop felt shotgun radius with lines greyed out.png"
+"models/tabletop standalone2/tabletop standalone export2_tabletop felt shotgun radius wo lines.png"
+"models/tabletop standalone2/tabletop standalone export2_tabletop felt.png"
+"models/tabletop standalone2/tabletop standalone export2_tabletop felt_without lines.png"
+"models/tabletop standalone2/tabletop standalone export2_wood worn albedo.png"
+"models/tabletop standalone2/tabletop standalone export2_worn bare darkened.png"
+]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="tabletop standalone export2"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+meshes/ensure_tangents=true
+meshes/generate_lods=false
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=false
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+_subresources={
+"meshes": {
+"tabletop standalone export2_Plane_017": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"tabletop standalone export2_Plane_033": {
+"generate/lightmap_uv": 0,
+"generate/lods": 1,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+}
+}
+}
+gltf/embedded_image_handling=1

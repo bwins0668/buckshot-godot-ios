@@ -1,0 +1,39 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://yufmia2qaqru"
+path="res://.godot/imported/temp mesh_pinch2.glb-3c74fb354c410298148f3bcf0ca537cd.scn"
+
+
+[deps]
+
+source_file="res://multiplayer/instances/main hand instances/temp mesh_pinch2/temp mesh_pinch2.glb"
+dest_files=["res://.godot/imported/temp mesh_pinch2.glb-3c74fb354c410298148f3bcf0ca537cd.scn"]
+files=[
+"multiplayer/instances/main hand instances/temp mesh_pinch2/temp mesh_pinch2_skin base hand_left.png"
+]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="temp mesh_pinch2"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+meshes/ensure_tangents=true
+meshes/generate_lods=true
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=true
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+_subresources={}
+gltf/embedded_image_handling=1

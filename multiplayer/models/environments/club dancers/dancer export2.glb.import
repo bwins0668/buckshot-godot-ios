@@ -1,0 +1,59 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://diw0x8pnk8d8b"
+path="res://.godot/imported/dancer export2.glb-00b07015626ee384d57a57fbf5c9afb3.scn"
+
+[deps]
+
+source_file="res://multiplayer/models/environments/club dancers/dancer export2.glb"
+dest_files=["res://.godot/imported/dancer export2.glb-00b07015626ee384d57a57fbf5c9afb3.scn"]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="dancer export2"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+meshes/ensure_tangents=true
+meshes/generate_lods=true
+meshes/create_shadow_meshes=false
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=true
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+_subresources={
+"animations": {
+"dance1": {
+"save_to_file/enabled": false,
+"save_to_file/keep_custom_tracks": false,
+"save_to_file/path": "",
+"settings/loop_mode": 1,
+"slices/amount": 0
+},
+"dance2": {
+"save_to_file/enabled": false,
+"save_to_file/keep_custom_tracks": false,
+"save_to_file/path": "",
+"settings/loop_mode": 1,
+"slices/amount": 0
+},
+"dance3": {
+"save_to_file/enabled": false,
+"save_to_file/keep_custom_tracks": false,
+"save_to_file/path": "",
+"settings/loop_mode": 1,
+"slices/amount": 0
+}
+}
+}
+gltf/embedded_image_handling=1

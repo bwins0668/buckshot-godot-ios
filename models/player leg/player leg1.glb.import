@@ -1,0 +1,39 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://b4dau5s54sq2l"
+path="res://.godot/imported/player leg1.glb-84ffd83bea227e33c7d3588ee4ea9205.scn"
+
+
+[deps]
+
+source_file="res://models/player leg/player leg1.glb"
+dest_files=["res://.godot/imported/player leg1.glb-84ffd83bea227e33c7d3588ee4ea9205.scn"]
+files=[
+"models/player leg/player leg1_smoker dude.png"
+]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="player leg1"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+meshes/ensure_tangents=true
+meshes/generate_lods=true
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=false
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+_subresources={}
+gltf/embedded_image_handling=1

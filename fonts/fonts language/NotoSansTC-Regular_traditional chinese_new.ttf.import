@@ -1,0 +1,32 @@
+[remap]
+
+importer="font_data_dynamic"
+type="FontFile"
+uid="uid://d0g52irspbl2b"
+path="res://.godot/imported/NotoSansTC-Regular_traditional chinese_new.ttf-75fec3ccf874425f203c78d79c4c3d8c.fontdata"
+
+[deps]
+
+source_file="res://fonts/fonts language/NotoSansTC-Regular_traditional chinese_new.ttf"
+dest_files=["res://.godot/imported/NotoSansTC-Regular_traditional chinese_new.ttf-75fec3ccf874425f203c78d79c4c3d8c.fontdata"]
+
+[params]
+
+Rendering=null
+antialiasing=1
+generate_mipmaps=false
+multichannel_signed_distance_field=false
+msdf_pixel_range=8
+msdf_size=48
+allow_system_fallback=true
+force_autohinter=false
+hinting=1
+oversampling=0.0
+Fallbacks=null
+fallbacks=[]
+Compress=null
+compress=true
+preload=[]
+language_support={}
+script_support={}
+opentype_features={}

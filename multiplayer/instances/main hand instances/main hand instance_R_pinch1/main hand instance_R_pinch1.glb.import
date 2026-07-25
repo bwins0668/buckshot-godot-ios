@@ -1,0 +1,35 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://du20ufm01wfwy"
+path="res://.godot/imported/main hand instance_R_pinch1.glb-004e6e41445eb7872515dfc8d49ad409.scn"
+
+[deps]
+
+source_file="res://multiplayer/instances/main hand instances/main hand instance_R_pinch1/main hand instance_R_pinch1.glb"
+dest_files=["res://.godot/imported/main hand instance_R_pinch1.glb-004e6e41445eb7872515dfc8d49ad409.scn"]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="main hand instance_R_pinch1"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+meshes/ensure_tangents=true
+meshes/generate_lods=true
+meshes/create_shadow_meshes=true
+meshes/light_baking=0
+meshes/lightmap_texel_size=0.0
+meshes/force_disable_compression=true
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+_subresources={}
+gltf/embedded_image_handling=1

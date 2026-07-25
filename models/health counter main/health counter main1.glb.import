@@ -1,0 +1,67 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://cv2lox7hmlv2i"
+path="res://.godot/imported/health counter main1.glb-3842ab1f0386692703fe777cc8171b24.scn"
+
+
+[deps]
+
+source_file="res://models/health counter main/health counter main1.glb"
+dest_files=["res://.godot/imported/health counter main1.glb-3842ab1f0386692703fe777cc8171b24.scn"]
+files=[
+"models/health counter main/health counter main1_TexturesCom_MetalSheet_Aged_512_normal.png"
+"models/health counter main/health counter main1_circuitboards.png"
+"models/health counter main/health counter main1_cutter device panel.png"
+"models/health counter main/health counter main1_health counter metal.png"
+"models/health counter main/health counter main1_sheet base_adapter.png"
+"models/health counter main/health counter main1_sheet base_knife hoist.png"
+"models/health counter main/health counter main1_sheet base_knife.png"
+"models/health counter main/health counter main1_sheet base_wire holder.png"
+]
+
+[params]
+
+nodes/root_type="Node3D"
+nodes/root_name="health counter main1"
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+meshes/ensure_tangents=true
+meshes/generate_lods=true
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=false
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+_subresources={
+"meshes": {
+"health counter main1_Cube_127": {
+"generate/lightmap_uv": 0,
+"generate/lods": 2,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+},
+"health counter main1_Cube_144": {
+"generate/lightmap_uv": 0,
+"generate/lods": 2,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": false,
+"save_to_file/path": ""
+}
+}
+}
+gltf/embedded_image_handling=1
