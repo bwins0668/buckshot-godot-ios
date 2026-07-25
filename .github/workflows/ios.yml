@@ -41,7 +41,8 @@ jobs:
           curl -L -o godot.zip "https://github.com/godotengine/godot/releases/download/4.1.1-stable/Godot_v4.1.1-stable_macos.universal.zip"
           unzip -o godot.zip
           rm godot.zip
-          mv "Godot.app" Godot.app
+          # Zip's top-level entry is already Godot.app/ (no nested rename needed).
+          chmod +x Godot.app/Contents/MacOS/Godot 2>/dev/null || true
           xattr -dr com.apple.quarantine Godot.app 2>/dev/null || true
           echo "GODOT_PATH=$(pwd)/Godot.app/Contents/MacOS/Godot" >> $GITHUB_ENV
 
