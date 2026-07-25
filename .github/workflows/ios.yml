@@ -13,7 +13,11 @@ env:
 
 jobs:
   build:
-    runs-on: macos-14
+    # macos-14 has been intermittently unavailable (startup_failure with 0 jobs,
+    # root cause unknown — likely GitHub-side macos-14 hosting queueing). Fall
+    # back to macos-13 (Intel) which is more stable; Rosetta JIT compiles the
+    # arm64 Godot binary at runtime on Apple Silicon runners when needed.
+    runs-on: macos-13
     timeout-minutes: 90
 
     steps:
