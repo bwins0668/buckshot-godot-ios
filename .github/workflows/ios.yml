@@ -10,13 +10,23 @@ permissions:
 
 env:
   GODOT_VERSION: 4.3
-  # v0.8.1: Force Godot 4.3 to use Metal rendering driver explicitly.
-  # iOS Simulator auto-detect can return Vulkan (which doesn't exist on
-  # Simulator), causing "ERROR: Unable to create DisplayServer, all display
-  # drivers failed" at rendering_device_driver_vulkan.cpp:1195. Forcing
-  # Metal via Info.plist godot_cmdline bypasses the bad auto-detect on
-  # Simulator and is a no-op on real iOS device (which already uses Metal).
-  PATCH_GODOT_CMDLINE: metal
+  # v0.8.3: split sim/device driver overrides.
+  #
+  # Godot 4.3 iOS export template valid --rendering-driver options:
+  #   vulkan  (default; uses MoltenVK → Apple Metal on device; may fail on sim)
+  #   opengl3 (OpenGL ES; legacy; works on iOS Simulator natively)
+  #   dummy   (headless)
+  #
+  # There is NO "metal" driver in the iOS export template — "metal" only
+  # exists in Godot's macOS desktop builds. Forcing --rendering-driver
+  # metal on iOS Simulator (v0.8.2) made Godot abort with
+  # "Unknown rendering driver 'metal', aborting."
+  #
+  # For the SIMULATOR smoke test: force opengl3 (works on iOS Simulator).
+  # For the REAL DEVICE IPA: leave unset (Godot 4.3 default vulkan →
+  # MoltenVK → Apple Metal works on iPad M2 + iOS 27).
+  PATCH_GODOT_CMDLINE_SIM: opengl3
+  PATCH_GODOT_CMDLINE_DEVICE: ""
 
 jobs:
   build:
@@ -392,20 +402,19 @@ jobs:
           fi
           ls "$SIM_APP" | head -20
 
-          # v0.8.2: patch_info_plist.py only runs in package_ipa.sh for the
+          # v0.8.3: patch_info_plist.py only runs in package_ipa.sh for the
           # device IPA path. The sim .app is built directly from
-          # builds/buckshot.xcodeproj without going through package_ipa.sh,
-          # so its Info.plist never gets the godot_cmdline override. Without
-          # the override, Godot 4.3's iOS auto-detect picks the Vulkan
-          # driver — which doesn't exist on iOS Simulator — and the app
-          # crashes at rendering_device_driver_vulkan.cpp:1195 before any
-          # scene renders. Patch the sim Info.plist in place with the same
-          # --rendering-driver metal + --rendering-method mobile cmdline as
-          # the device IPA so both targets use the native Metal backend.
+          # builds/buckshot.xcodeproj via xcodebuild -sdk iphonesimulator and
+          # never goes through package_ipa.sh, so its Info.plist was never
+          # patched. Without --sim, PATCH_GODOT_CMDLINE_SIM controls the
+          # override applied here (default: opengl3 — the only viable sim
+          # driver since "metal" doesn't exist in the iOS export template
+          # and "vulkan" crashes at rendering_device_driver_vulkan.cpp:1195
+          # on iOS Simulator).
           SIM_PLIST="$SIM_APP/Info.plist"
           if [ -f "$SIM_PLIST" ]; then
-            echo "=== patching sim Info.plist (PATCH_GODOT_CMDLINE=${PATCH_GODOT_CMDLINE:-unset}) ==="
-            python3 ci/patch_info_plist.py "$SIM_PLIST" || \
+            echo "=== patching sim Info.plist (PATCH_GODOT_CMDLINE_SIM=${PATCH_GODOT_CMDLINE_SIM:-unset}) ==="
+            python3 ci/patch_info_plist.py --sim "$SIM_PLIST" || \
               echo "::warning::patch_info_plist.py failed for sim Info.plist"
             /usr/libexec/PlistBuddy -c "Print :godot_cmdline" "$SIM_PLIST" 2>/dev/null || true
           else

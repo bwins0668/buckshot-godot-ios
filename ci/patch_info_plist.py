@@ -39,29 +39,76 @@ import sys
 from pathlib import Path
 from typing import Iterable
 
-# Candidate C (Godot 4.3) — let the engine pick its native Metal path.
-# Default: do NOT inject godot_cmdline. To force the legacy OpenGL ES
-# fallback (regression test only), set env var PATCH_GODOT_CMDLINE=opengl3.
+# v0.8.3: split sim vs device cmdline override.
 #
-# v0.8.1 NOTE: iOS Simulator lacks Vulkan but Godot 4.3's auto-detect can
-# still return Vulkan as the chosen driver on Simulator. The Simulator then
-# crashes at rendering_device_driver_vulkan.cpp:1195 ("err != OK") and the
-# app exits before any scene is rendered. To force the Metal path on
-# BOTH real iOS device and iOS Simulator, set PATCH_GODOT_CMDLINE=metal.
-GODOT_CMDLINE: list[str] | None = None
-_pgc = os.environ.get("PATCH_GODOT_CMDLINE", "").strip().lower()
-if _pgc == "opengl3":
-    GODOT_CMDLINE = [
-        "--rendering-driver", "opengl3",
-        "--rendering-method", "gl_compatibility",
-    ]
-elif _pgc == "metal":
-    GODOT_CMDLINE = [
-        "--rendering-driver", "metal",
-        "--rendering-method", "mobile",
-    ]
-elif _pgc:
-    raise SystemExit(f"[patch_info_plist] unknown PATCH_GODOT_CMDLINE={_pgc!r} (use opengl3 or metal)")
+# Real iOS device: --rendering-driver omitted → Godot 4.3 default is
+# `vulkan` which routes through MoltenVK to Apple Metal on iPad M2 +
+# iOS 27. The MoltenVK layer's AGXMetalG14G.dlopen was confirmed in
+# the v0.8 iPad syslog, so the device path works.
+#
+# iOS Simulator: --rendering-driver opengl3 → OpenGL ES, which is
+# natively supported by the Simulator runtime. Godot 4.3 iOS export
+# template has NO "metal" driver option; the only valid options are
+# vulkan / opengl3 / dummy. Forcing "metal" causes
+#   "Unknown rendering driver 'metal', aborting." (v0.8.2 sim.log).
+# Forcing vulkan on sim crashes at
+#   drivers/vulkan/rendering_device_driver_vulkan.cpp:1195
+#   (v0.8 sim-syslog.txt). opengl3 is the only viable sim fallback.
+#
+# Env var precedence:
+#   PATCH_GODOT_CMDLINE  → legacy, used by both sim and device
+#   PATCH_GODOT_CMDLINE_SIM / PATCH_GODOT_CMDLINE_DEVICE  → split
+#   Either may be empty/unset to mean "no override" (let Godot auto-pick).
+#
+# Allowed values per side: "opengl3" | "vulkan" | "metal" | "" (empty)
+GODOT_CMDLINE_SIM: list[str] | None = None
+GODOT_CMDLINE_DEVICE: list[str] | None = None
+
+_LEGACY = os.environ.get("PATCH_GODOT_CMDLINE", "").strip().lower()
+_SIM = os.environ.get("PATCH_GODOT_CMDLINE_SIM", "").strip().lower()
+_DEV = os.environ.get("PATCH_GODOT_CMDLINE_DEVICE", "").strip().lower()
+
+
+def _parse_cmd(val: str, side: str) -> list[str] | None:
+    """Translate env-var string to a Godot cmdline list."""
+    if val == "":
+        return None
+    if val == "opengl3":
+        return ["--rendering-driver", "opengl3", "--rendering-method", "gl_compatibility"]
+    if val == "vulkan":
+        return ["--rendering-driver", "vulkan", "--rendering-method", "mobile"]
+    if val == "metal":
+        return ["--rendering-driver", "metal", "--rendering-method", "mobile"]
+    raise SystemExit(f"[patch_info_plist] unknown PATCH_GODOT_CMDLINE_{side}={val!r}")
+
+
+if _LEGACY and (_SIM or _DEV):
+    raise SystemExit(
+        "[patch_info_plist] both PATCH_GODOT_CMDLINE and PATCH_GODOT_CMDLINE_{SIM|DEVICE} "
+        "are set; use only one scheme"
+    )
+if _LEGACY:
+    # Legacy mode: apply same override to both sim and device.
+    GODOT_CMDLINE_SIM = _parse_cmd(_LEGACY, "SIM/DEVICE")
+    GODOT_CMDLINE_DEVICE = _parse_cmd(_LEGACY, "SIM/DEVICE")
+else:
+    GODOT_CMDLINE_SIM = _parse_cmd(_SIM, "SIM")
+    GODOT_CMDLINE_DEVICE = _parse_cmd(_DEV, "DEVICE")
+
+
+def cmdline_for_target(target: str) -> list[str] | None:
+    """Return cmdline for the named target ('sim' or 'device')."""
+    if target == "sim":
+        return GODOT_CMDLINE_SIM
+    if target == "device":
+        return GODOT_CMDLINE_DEVICE
+    raise SystemExit(f"[patch_info_plist] unknown target {target!r}; use 'sim' or 'device'")
+
+
+# Back-compat: preserve the old module-level `GODOT_CMDLINE` for any
+# caller that hasn't migrated yet. Falls back to the sim value if set,
+# else the device value, else None. Prefer `cmdline_for_target()`.
+GODOT_CMDLINE: list[str] | None = GODOT_CMDLINE_SIM if GODOT_CMDLINE_SIM is not None else GODOT_CMDLINE_DEVICE
 
 # Godot 4.3 iOS exporter emits MinimumOSVersion following
 # application/minimum_os_version in export_presets.cfg, which we already
@@ -71,15 +118,21 @@ elif _pgc:
 MINIMUM_OS_VERSION: str = "13.0"
 
 
-def patch_one(plist_path: Path) -> None:
+def patch_one(plist_path: Path, target: str = "device") -> None:
+    """Patch one Info.plist with cmdline override for the named target.
+
+    target ∈ {"sim", "device"}. Defaults to "device" for back-compat with
+    callers that haven't been updated yet (e.g. package_ipa.sh).
+    """
     if not plist_path.exists():
         raise SystemExit(f"[patch_info_plist] not found: {plist_path}")
     with plist_path.open("rb") as f:
         data = plistlib.load(f)
 
+    cmdline = cmdline_for_target(target)
     before_cmdline = data.get("godot_cmdline")
-    if GODOT_CMDLINE is not None:
-        data["godot_cmdline"] = list(GODOT_CMDLINE)
+    if cmdline is not None:
+        data["godot_cmdline"] = list(cmdline)
         cmdline_after = data["godot_cmdline"]
     else:
         cmdline_after = before_cmdline  # unchanged
@@ -90,17 +143,35 @@ def patch_one(plist_path: Path) -> None:
     with plist_path.open("wb") as f:
         plistlib.dump(data, f)
 
-    print(f"[patch_info_plist] {plist_path}")
+    print(f"[patch_info_plist] {plist_path} (target={target})")
     print(f"  godot_cmdline:  {before_cmdline!r} -> {cmdline_after!r}")
     print(f"  MinimumOSVersion: {before_minos!r} -> {data['MinimumOSVersion']!r}")
 
 
 def main(args: Iterable[str]) -> int:
-    paths = list(args)
+    """
+    Back-compat CLI: each path arg is treated as a device Info.plist.
+    Pass --sim before a path to mark it as a sim plist instead.
+    """
+    args = list(args)
+    target = "device"
+    paths: list[str] = []
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a == "--sim":
+            target = "sim"
+            i += 1
+        elif a == "--device":
+            target = "device"
+            i += 1
+        else:
+            paths.append(a)
+            i += 1
     if not paths:
-        raise SystemExit("usage: patch_info_plist.py <Info.plist> [<Info.plist> ...]")
+        raise SystemExit("usage: patch_info_plist.py [--sim|--device] <Info.plist> [<Info.plist> ...]")
     for p in paths:
-        patch_one(Path(p))
+        patch_one(Path(p), target=target)
     return 0
 
 
