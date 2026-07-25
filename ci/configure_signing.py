@@ -2,7 +2,7 @@
 """Patch a Godot-generated Xcode project for manual distribution signing.
 
 Godot 4.1.1's iOS exporter writes a project.pbxproj with several defaults
-that conflict with our setup (Distribution cert + manual signing + iOS 12
+that conflict with our setup (Distribution cert + manual signing + iOS 13
 deployment target). xcodebuild refuses to build with:
 
   error: buckshot has conflicting provisioning settings.
@@ -16,7 +16,7 @@ since pbxproj duplicates them):
   CODE_SIGN_STYLE                  "Automatic"    -> "Manual"
   ProvisioningStyle                 Automatic     -> Manual
   CODE_SIGN_IDENTITY (any sdk=)    "iPhone Distribution" -> "Apple Distribution"
-  IPHONEOS_DEPLOYMENT_TARGET        11.0          -> 12.0
+  IPHONEOS_DEPLOYMENT_TARGET        11.0          -> 13.0
 
 Usage: python3 configure_signing.py <path-to-pbxproj>
 """
@@ -58,7 +58,7 @@ PAIRS = [
     ('ProvisioningStyle = Automatic;',
      'ProvisioningStyle = Manual;'),
     ('IPHONEOS_DEPLOYMENT_TARGET = 11.0;',
-     'IPHONEOS_DEPLOYMENT_TARGET = 12.0;'),
+     'IPHONEOS_DEPLOYMENT_TARGET = 13.0;'),
 ]  # noqa: E501
 
 
