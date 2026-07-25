@@ -140,7 +140,23 @@ jobs:
             security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
             security list-keychains -d user -s "$KEYCHAIN_PATH"
             echo "$IOS_P12_BASE64" | base64 -d > "$RUNNER_TEMP/cert.p12"
-            security import "$RUNNER_TEMP/cert.p12" -P "$IOS_P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+            # macOS security CLI on recent macOS rejects PBES2/AES-256-CBC p12
+            # with "MAC verification failed" even when password is correct.
+            # Re-export through openssl with legacy RC2-40 to make it compatible.
+            if ! security import "$RUNNER_TEMP/cert.p12" \
+                -P "$IOS_P12_PASSWORD" -A -t cert -f pkcs12 \
+                -k "$KEYCHAIN_PATH" 2>/tmp/sec_import.err; then
+              echo "First security import failed: $(cat /tmp/sec_import.err)"
+              echo "Re-encoding p12 with legacy RC2-40 (PBES1) and retrying"
+              openssl pkcs12 -in "$RUNNER_TEMP/cert.p12" \
+                -passin "pass:$IOS_P12_PASSWORD" \
+                -passout "pass:$IOS_P12_PASSWORD" \
+                -legacy -keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES \
+                -out "$RUNNER_TEMP/cert.legacy.p12"
+              security import "$RUNNER_TEMP/cert.legacy.p12" \
+                -P "$IOS_P12_PASSWORD" -A -t cert -f pkcs12 \
+                -k "$KEYCHAIN_PATH"
+            fi
             echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
             echo "KEYCHAIN_PASSWORD=$KEYCHAIN_PASSWORD" >> $GITHUB_ENV
           fi
