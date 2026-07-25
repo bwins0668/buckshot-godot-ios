@@ -131,6 +131,119 @@ jobs:
             python3 ci/repair_pbxproj.py builds/buckshot.xcodeproj/project.pbxproj
           fi
 
+      - name: Simulator smoke test (build, install, launch, capture)
+        shell: bash
+        continue-on-error: true
+        run: |
+          # Purpose: actually run the .app Godot produced inside an iPhone Simulator
+          # to surface crash reasons (exceptions, signal handlers, missing plist
+          # entries, audio/init failures) that xcodebuild archive alone cannot.
+          # Soft-fails: the device .ipa build below still runs to completion.
+          set -o pipefail
+
+          BUNDLE_ID="com.B5xPo.9xnOT"
+
+          # 1. Pick an available iPhone simulator (15 -> 14 -> 13 fallback)
+          DEVICE_LINE=$(xcrun simctl list devices available 2>&1 \
+            | grep -E "iPhone (15|14|13)" \
+            | grep -v "unavailable" \
+            | head -1 || true)
+          if [ -z "$DEVICE_LINE" ]; then
+            echo "::warning::No iPhone 13/14/15 simulator runtime on this runner; skipping smoke test."
+            xcrun simctl list devices available 2>&1 | head -20 || true
+            : > "$RUNNER_TEMP/sim.log"
+            echo "[no iPhone simulator runtime installed]" > "$RUNNER_TEMP/sim.log"
+            exit 0
+          fi
+          echo "Selected: $DEVICE_LINE"
+
+          DEVICE_UDID=$(echo "$DEVICE_LINE" \
+            | grep -oE '\([0-9A-Fa-f-]{36}\)' | tr -d '()' | tail -1)
+          if [ -z "$DEVICE_UDID" ]; then
+            echo "::warning::Could not parse UDID from: $DEVICE_LINE"
+            exit 0
+          fi
+          echo "DEVICE_UDID=$DEVICE_UDID"
+
+          # 2. Boot if not already booted
+          STATE=$(xcrun simctl list devices 2>&1 \
+            | grep "$DEVICE_UDID" \
+            | grep -oE '\((Booted|Booting|Shutdown)\)' | tr -d '()')
+          if [ "$STATE" != "Booted" ]; then
+            xcrun simctl boot "$DEVICE_UDID" || true
+            xcrun simctl bootstatus "$DEVICE_UDID" -b
+          fi
+
+          # 3. Build .app for iphonesimulator SDK (no signing needed)
+          SIM_DD="$RUNNER_TEMP/sim-derived"
+          rm -rf "$SIM_DD"
+
+          xcodebuild \
+            -project builds/buckshot.xcodeproj \
+            -scheme buckshot \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,id=$DEVICE_UDID" \
+            -derivedDataPath "$SIM_DD" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            build > "$RUNNER_TEMP/sim-build.log" 2>&1
+          BUILD_RC=$?
+          echo "sim build exit=$BUILD_RC"
+          tail -25 "$RUNNER_TEMP/sim-build.log"
+          if [ $BUILD_RC -ne 0 ]; then
+            echo "::error::Simulator build failed (rc=$BUILD_RC). See sim-build.log artifact."
+            exit 0
+          fi
+
+          SIM_APP="$SIM_DD/Build/Products/Debug-iphonesimulator/buckshot.app"
+          if [ ! -d "$SIM_APP" ]; then
+            echo "::error::Simulator .app not at $SIM_APP"
+            find "$SIM_DD" -name "*.app" -maxdepth 6 2>/dev/null || true
+            exit 0
+          fi
+          ls "$SIM_APP" | head -20
+
+          # 4. Install on the booted simulator
+          xcrun simctl install "$DEVICE_UDID" "$SIM_APP"
+
+          # 5. Launch with PTY console (backgrounded so we can screenshot first)
+          : > "$RUNNER_TEMP/sim.log"
+          xcrun simctl launch --console-pty "$DEVICE_UDID" "$BUNDLE_ID" \
+            > "$RUNNER_TEMP/sim.log" 2>&1 &
+          LAUNCH_PID=$!
+
+          # 6. Wait for Godot to init or crash hard
+          sleep 10
+
+          # 7. Screenshot the current frame
+          xcrun simctl io "$DEVICE_UDID" screenshot "$RUNNER_TEMP/sim.png" 2>&1 || true
+
+          # 8. Snapshot device syslog filtered to our process
+          xcrun simctl spawn "$DEVICE_UDID" log show \
+            --predicate "process == \"buckshot\" OR senderImagePath CONTAINS \"Godot\"" \
+            --last 1m \
+            --style compact \
+            > "$RUNNER_TEMP/sim-syslog.txt" 2>&1 || true
+
+          # 9. Stop the launch wrapper and the app itself
+          kill "$LAUNCH_PID" 2>/dev/null || true
+          xcrun simctl terminate "$DEVICE_UDID" "$BUNDLE_ID" 2>/dev/null || true
+          wait "$LAUNCH_PID" 2>/dev/null || true
+
+          # 10. Echo a digest for the GH log
+          echo "=== sim.log size: $(wc -c < "$RUNNER_TEMP/sim.log" 2>/dev/null) bytes ==="
+          head -120 "$RUNNER_TEMP/sim.log" 2>/dev/null || true
+          echo "=== sim-syslog.txt size: $(wc -c < "$RUNNER_TEMP/sim-syslog.txt" 2>/dev/null) bytes ==="
+          head -60 "$RUNNER_TEMP/sim-syslog.txt" 2>/dev/null || true
+
+          if grep -qiE "crash|exception|fatal|SIGABRT|SIGSEGV|EXC_|signal|abort\(\)" \
+              "$RUNNER_TEMP/sim.log" "$RUNNER_TEMP/sim-syslog.txt" 2>/dev/null; then
+            echo "::warning::Simulator smoke test surfaced crash signatures. Inspect sim.log + sim.png + sim-syslog.txt artifacts."
+          fi
+
+          exit 0
+
       - name: Install provisioning profile
         shell: bash
         env:
@@ -243,5 +356,9 @@ jobs:
           path: |
             ${{ runner.temp }}/Buckshot.xcarchive
             ${{ runner.temp }}/ipa_out/*.ipa
+            ${{ runner.temp }}/sim-build.log
+            ${{ runner.temp }}/sim.log
+            ${{ runner.temp }}/sim.png
+            ${{ runner.temp }}/sim-syslog.txt
             builds/
           if-no-files-found: warn
