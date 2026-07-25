@@ -140,15 +140,20 @@ jobs:
             security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
             security list-keychains -d user -s "$KEYCHAIN_PATH"
             echo "$IOS_P12_BASE64" | base64 -d > "$RUNNER_TEMP/cert.p12"
-            # macOS security CLI on recent macOS rejects PBES2/AES-256-CBC p12
-            # with "MAC verification failed" even when password is correct.
-            # Re-export through openssl with legacy RC2-40 to make it compatible.
+            # Apple-provided LibreSSL doesn't support PKCS12 -legacy re-encode.
+            # Use brew's OpenSSL if available; fall back to system openssl.
+            OPENSSL_BIN="$(brew --prefix openssl@3 2>/dev/null)/bin/openssl"
+            if [ ! -x "$OPENSSL_BIN" ]; then
+              OPENSSL_BIN="$(command -v openssl)"
+            fi
+            echo "Using openssl: $OPENSSL_BIN ($("$OPENSSL_BIN" version 2>&1))"
+            # Try native security import first.
             if ! security import "$RUNNER_TEMP/cert.p12" \
                 -P "$IOS_P12_PASSWORD" -A -t cert -f pkcs12 \
                 -k "$KEYCHAIN_PATH" 2>/tmp/sec_import.err; then
               echo "First security import failed: $(cat /tmp/sec_import.err)"
-              echo "Re-encoding p12 with legacy RC2-40 (PBES1) and retrying"
-              openssl pkcs12 -in "$RUNNER_TEMP/cert.p12" \
+              echo "Re-encoding p12 with legacy PBES1 and retrying"
+              "$OPENSSL_BIN" pkcs12 -in "$RUNNER_TEMP/cert.p12" \
                 -passin "pass:$IOS_P12_PASSWORD" \
                 -passout "pass:$IOS_P12_PASSWORD" \
                 -legacy -keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES \
