@@ -40,17 +40,19 @@ jobs:
         shell: bash
         run: |
           mkdir -p ~/godot
-          cd ~/godot
-          if [ ! -x "Godot.app/Contents/MacOS/Godot" ]; then
+          GODOT_DIR="$HOME/godot"
+          GODOT_BIN="$GODOT_DIR/Godot.app/Contents/MacOS/Godot"
+          if [ ! -x "$GODOT_BIN" ]; then
             echo "Downloading Godot 4.1.1 stable (macOS universal)"
-            curl -L -o godot.zip "https://github.com/godotengine/godot/releases/download/4.1.1-stable/Godot_v4.1.1-stable_macos.universal.zip"
+            curl -L -o "$GODOT_DIR/godot.zip" "https://github.com/godotengine/godot/releases/download/4.1.1-stable/Godot_v4.1.1-stable_macos.universal.zip"
+            cd "$GODOT_DIR"
             unzip -o godot.zip
             rm godot.zip
             chmod +x Godot.app/Contents/MacOS/Godot
             xattr -dr com.apple.quarantine Godot.app 2>/dev/null || true
           fi
-          echo "GODOT_PATH=$(pwd)/Godot.app/Contents/MacOS/Godot" >> $GITHUB_ENV
-          "$GODOT_PATH" --version
+          echo "GODOT_PATH=$GODOT_BIN" >> "$GITHUB_ENV"
+          "$GODOT_BIN" --version
 
       - name: Install iOS export templates
         shell: bash
