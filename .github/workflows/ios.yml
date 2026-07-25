@@ -180,7 +180,9 @@ jobs:
             IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | head -1 | sed -n 's/.*"\(.*\)".*/\1/p')
             echo "Using identity: $IDENTITY"
             set +e
-            cp ci/ExportOptions.plist "$RUNNER_TEMP/ExportOptions.plist"
+            # Resolve ci/ExportOptions.plist relative to the repo root (one level up from builds/).
+            cp "$GITHUB_WORKSPACE/ci/ExportOptions.plist" "$RUNNER_TEMP/ExportOptions.plist"
+            ls -la "$RUNNER_TEMP/ExportOptions.plist" 2>&1
             xcodebuild \
               -project "$PROJECT" \
               -scheme "buckshot" \

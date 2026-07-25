@@ -12,7 +12,5 @@
 <true/>
 <key>uploadSymbols</key>
 <false/>
-<key>embedOnDemandResourcesAssetPacksInMainBundle</key>
-<true/>
 </dict>
 </plist>
