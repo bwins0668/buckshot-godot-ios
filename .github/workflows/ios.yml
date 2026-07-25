@@ -113,11 +113,27 @@ jobs:
         shell: bash
         run: |
           mkdir -p builds
+          # Phase 1 — snapshot uid_cache.bin + *.uid sidecars BEFORE export so we
+          # have a deterministic baseline that post_export_patch.py can refer to.
+          python3 ci/snapshot_uids.py --snapshot || true
           "$GODOT_PATH" --headless --path . --export-release "iOS" builds/buckshot.xcodeproj > "$RUNNER_TEMP/godot-export.log" 2>&1
           EXP_RC=$?
           echo "godot export exit=$EXP_RC"
           tail -50 "$RUNNER_TEMP/godot-export.log"
           if [ $EXP_RC -ne 0 ]; then exit $EXP_RC; fi
+          # Phase 3 — post-export patch: rewrite PCK MD5 entries to match current
+          # file bodies; the UID values themselves remain as Godot produced them
+          # (sub_resource UID stability across runs is enforced via the snapshot).
+          if [ -f builds/buckshot.xcodeproj ]; then
+            PCK_PATH=$(find builds -name "*.pck" -type f | head -1 || true)
+            if [ -n "$PCK_PATH" ] && [ -f "$PCK_PATH" ]; then
+              python3 ci/post_export_patch.py "$PCK_PATH" "${PCK_PATH%.pck}.patched.pck" || true
+              if [ -f "${PCK_PATH%.pck}.patched.pck" ]; then
+                mv "${PCK_PATH%.pck}.patched.pck" "$PCK_PATH"
+                echo "[export] patched PCK in place: $PCK_PATH"
+              fi
+            fi
+          fi
           ls -la builds/
 
       - name: Configure code signing for manual
@@ -395,6 +411,49 @@ jobs:
               "$RUNNER_TEMP/sim.log" "$RUNNER_TEMP/sim-syslog.txt" 2>/dev/null; then
             echo "::warning::Simulator smoke test surfaced crash signatures. Inspect sim.log + sim.png + sim-syslog.txt artifacts."
           fi
+          # Phase 6 — machine-readable verdict via ci/sim_check.py.
+          python3 ci/sim_check.py \
+            --png "$RUNNER_TEMP/sim.png" \
+            --png2 "$RUNNER_TEMP/sim2.png" \
+            --log "$RUNNER_TEMP/sim.log" \
+            --syslog "$RUNNER_TEMP/sim-syslog.txt" \
+            --json > "$RUNNER_TEMP/sim_verdict.json" 2>&1 || true
+          cat "$RUNNER_TEMP/sim_verdict.json" 2>/dev/null || true
+          SIM_RC=$(python3 -c "import json; d=json.load(open('$RUNNER_TEMP/sim_verdict.json')); print(0 if d.get('pass') else 1)" 2>/dev/null || echo 1)
+          if [ "$SIM_RC" -ne 0 ]; then
+            echo "::warning::sim_check.py reported non-pass verdict (rc=$SIM_RC) — see sim_verdict.json"
+          fi
+
+          # Phase 7 — self-heal driver. If sim failed, run up to 3 iterations of
+          # byte-diff → extract missing → re-export → re-archive → re-smoke.
+          # On macos-14 the re-run within the same job is too expensive; instead
+          # we just generate the self-heal report + missing file list so the next
+          # workflow run picks up the recovered assets. The driver is invoked
+          # again at the top of the next run.
+          ORIG_PCK_FOR_HEAL="${ORIG_PCK_FOR_HEAL:-}"
+          if [ -z "$ORIG_PCK_FOR_HEAL" ] && [ -n "$ORIG_PCK_REPO" ]; then
+            ORIG_PCK_FOR_HEAL="$ORIG_PCK_REPO"
+          fi
+          # Default: look for an uploaded orig PCK in workspace or runner temp.
+          if [ -z "$ORIG_PCK_FOR_HEAL" ]; then
+            for cand in \
+              "$GITHUB_WORKSPACE/Buckshot_Roulette.exe" \
+              "$RUNNER_TEMP/Buckshot_Roulette.exe" \
+              "$RUNNER_TEMP/orig/Buckshot Roulette.exe"; do
+              if [ -f "$cand" ]; then ORIG_PCK_FOR_HEAL="$cand"; break; fi
+            done
+          fi
+          if [ "$SIM_RC" -ne 0 ] && [ -n "$ORIG_PCK_FOR_HEAL" ] && [ -f "$ORIG_PCK_FOR_HEAL" ]; then
+            echo "[self-heal] sim failed and orig PCK available — generating recovery plan"
+            MAX_ITERS=3 bash ci/self_heal.sh \
+              --orig-pck "$ORIG_PCK_FOR_HEAL" \
+              --repo-root "$GITHUB_WORKSPACE" \
+              --report-path "$RUNNER_TEMP/self_heal_report.json" \
+              --max-iters 3 || true
+            cp -f "$RUNNER_TEMP/self_heal_report.json" "$GITHUB_WORKSPACE/.godot/.self_heal_report.json" || true
+          elif [ "$SIM_RC" -ne 0 ]; then
+            echo "::warning::sim failed but ORIG_PCK not available; skipping self-heal."
+          fi
 
           exit 0
 
@@ -412,5 +471,10 @@ jobs:
             ${{ runner.temp }}/sim.png
             ${{ runner.temp }}/sim2.png
             ${{ runner.temp }}/sim-syslog.txt
+            ${{ runner.temp }}/sim_verdict.json
+            ${{ runner.temp }}/self_heal_report.json
+            .godot/.byte_diff_iter_*.json
+            .godot/.uid_snapshot/snapshot.json
+            .godot/.self_heal_report.json
             builds/
           if-no-files-found: warn
