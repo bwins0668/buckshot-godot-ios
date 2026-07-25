@@ -427,8 +427,11 @@ jobs:
           # macos-14 runner does NOT ship Pillow. Without it ci/sim_check.py
           # silently returns png_mean=null → verdict passes-by-default, hiding
           # real black screens. Install it before sim_check so the verdict is
-          # actually computed from PNG pixel data.
-          python3 -m pip install --quiet --user Pillow 2>&1 | tail -5 || true
+          # actually computed from PNG pixel data. macos-14 ships with the
+          # PEP 668 externally-managed Python, so we MUST use --break-system-
+          # packages (or install to a venv). The macos-14 runner is ephemeral
+          # so we don't care about polluting the system Python.
+          python3 -m pip install --quiet --user --break-system-packages Pillow 2>&1 | tail -5 || true
           # Phase 6 — machine-readable verdict via ci/sim_check.py. We pass
           # all three screenshots; sim_check picks the first non-black one.
           python3 ci/sim_check.py \
