@@ -1,0 +1,154 @@
+name: Sim Visual Verification (v0.8)
+
+on:
+  workflow_dispatch:  # only manual trigger
+
+permissions:
+  contents: read
+
+env:
+  GODOT_VERSION: 4.3
+
+jobs:
+  sim-visual:
+    runs-on: macos-14
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Verify LFS checkout
+        run: |
+          echo "scenes/main.tscn size = $(stat -f%z scenes/main.tscn 2>/dev/null || echo 'missing')"
+          ls -la scenes/main.tscn
+
+      - name: Download Godot 4.3
+        run: |
+          URL="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_macos.universal.zip"
+          mkdir -p ~/godot
+          curl -L -o ~/godot/godot.zip "$URL"
+          unzip -q ~/godot/godot.zip -d ~/godot/
+          chmod +x ~/godot/Godot.app/Contents/MacOS/Godot
+          ~/godot/Godot.app/Contents/MacOS/Godot --version
+
+      - name: Cache Godot import cache
+        uses: actions/cache@v4
+        with:
+          path: .godot
+          key: godot-import-v0.8
+          restore-keys: godot-import-
+
+      - name: Export iOS project
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          ~/godot/Godot.app/Contents/MacOS/Godot \
+            --headless \
+            --path "$GITHUB_WORKSPACE" \
+            --export-debug "iOS" "builds/buckshot.xcodeproj" \
+            2>&1 | tail -50
+          ls -la builds/
+
+      - name: Build for iOS Simulator
+        run: |
+          SIM_DD="$RUNNER_TEMP/sim-derived"
+          rm -rf "$SIM_DD"
+          xcodebuild \
+            -project builds/buckshot.xcodeproj \
+            -scheme buckshot \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$SIM_DD" \
+            ARCHS=arm64 \
+            EXCLUDED_ARCHS=x86_64 \
+            ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_STYLE=Manual \
+            build > "$RUNNER_TEMP/sim-build.log" 2>&1
+          echo "sim build exit=$?"
+          ls "$SIM_DD/Build/Products/Debug-iphonesimulator/" || true
+
+      - name: Boot iPhone Simulator
+        run: |
+          DEVICE_LINE=$(xcrun simctl list devices available 2>&1 \
+            | grep -E "iPhone (15|14|13)" \
+            | grep -v "unavailable" \
+            | head -1 || true)
+          echo "Selected: $DEVICE_LINE"
+          DEVICE_UDID=$(echo "$DEVICE_LINE" \
+            | grep -oE '\([0-9A-Fa-f-]{36}\)' | tr -d '()' | tail -1)
+          echo "DEVICE_UDID=$DEVICE_UDID"
+          echo "DEVICE_UDID=$DEVICE_UDID" >> $GITHUB_ENV
+
+          STATE=$(xcrun simctl list devices 2>&1 \
+            | grep "$DEVICE_UDID" \
+            | grep -oE '\((Booted|Booting|Shutdown)\)' | tr -d '()')
+          if [ "$STATE" != "Booted" ]; then
+            xcrun simctl boot "$DEVICE_UDID" || true
+            xcrun simctl bootstatus "$DEVICE_UDID" -b
+          fi
+
+      - name: Install + Launch + Screenshot (3 frames)
+        run: |
+          BUNDLE_ID="com.B5xPo.9xnOT"
+          SIM_APP="$RUNNER_TEMP/sim-derived/Build/Products/Debug-iphonesimulator/buckshot.app"
+          xcrun simctl install "$DEVICE_UDID" "$SIM_APP"
+          xcrun simctl status_bar "$DEVICE_UDID" override --time 12:00 2>/dev/null || true
+          xcrun simctl ui "$DEVICE_UDID" appearance dark 2>/dev/null || true
+
+          : > "$RUNNER_TEMP/sim.log"
+          xcrun simctl terminate "$DEVICE_UDID" "$BUNDLE_ID" 2>/dev/null || true
+          sleep 1
+          xcrun simctl launch --console-pty "$DEVICE_UDID" "$BUNDLE_ID" \
+            > "$RUNNER_TEMP/sim.log" 2>&1 &
+          LAUNCH_PID=$!
+
+          sleep 25
+          xcrun simctl io "$DEVICE_UDID" screenshot "$RUNNER_TEMP/sim.png" 2>&1 || true
+          sleep 25
+          xcrun simctl io "$DEVICE_UDID" screenshot "$RUNNER_TEMP/sim2.png" 2>&1 || true
+          sleep 20
+          xcrun simctl io "$DEVICE_UDID" screenshot "$RUNNER_TEMP/sim3.png" 2>&1 || true
+
+          xcrun simctl spawn "$DEVICE_UDID" log show \
+            --predicate "process == \"buckshot\" OR senderImagePath CONTAINS \"Godot\"" \
+            --last 2m --style compact \
+            > "$RUNNER_TEMP/sim-syslog.txt" 2>&1 || true
+
+          kill "$LAUNCH_PID" 2>/dev/null || true
+          xcrun simctl terminate "$DEVICE_UDID" "$BUNDLE_ID" 2>/dev/null || true
+
+      - name: Pixel-level visual verdict (Pillow)
+        run: |
+          python3 -m pip install --quiet --user --break-system-packages Pillow 2>&1 | tail -2 || true
+          python3 ci/sim_check.py \
+            --png "$RUNNER_TEMP/sim.png" \
+            --png2 "$RUNNER_TEMP/sim2.png" \
+            --png3 "$RUNNER_TEMP/sim3.png" \
+            --log "$RUNNER_TEMP/sim.log" \
+            --syslog "$RUNNER_TEMP/sim-syslog.txt" \
+            --json > "$RUNNER_TEMP/sim_verdict.json" 2>&1
+          cat "$RUNNER_TEMP/sim_verdict.json"
+          echo "=== sim.log ==="
+          head -60 "$RUNNER_TEMP/sim.log"
+          echo "=== sim-syslog head ==="
+          head -60 "$RUNNER_TEMP/sim-syslog.txt"
+
+      - name: Upload sim visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sim-visual-evidence
+          path: |
+            ${{ runner.temp }}/sim.png
+            ${{ runner.temp }}/sim2.png
+            ${{ runner.temp }}/sim3.png
+            ${{ runner.temp }}/sim.log
+            ${{ runner.temp }}/sim-syslog.txt
+            ${{ runner.temp }}/sim_verdict.json
+            ${{ runner.temp }}/sim-build.log
