@@ -3,8 +3,16 @@
 <plist version="1.0">
 <dict>
 <key>method</key>
-<string>development</string>
+<string>ad-hoc</string>
 <key>signingStyle</key>
 <string>manual</string>
+<key>teamId</key>
+<string>WB5752S5M6</string>
+<key>stripDebugSymbols</key>
+<true/>
+<key>uploadSymbols</key>
+<false/>
+<key>embedOnDemandResourcesAssetPacksInMainBundle</key>
+<true/>
 </dict>
 </plist>
