@@ -287,6 +287,10 @@ jobs:
           fi
 
           # 3. Build .app for iphonesimulator SDK (no signing needed)
+          # NOTE: Godot 4.1.1 iOS export templates only ship an x86_64 slice
+          # for iphonesimulator (no arm64 simulator slice). macos-14 runners
+          # are Apple Silicon, so we must force ARCHS=x86_64 (Rosetta will
+          # JIT the binary into arm64 at runtime -- works on macos-13/14+).
           SIM_DD="$RUNNER_TEMP/sim-derived"
           rm -rf "$SIM_DD"
 
@@ -297,6 +301,9 @@ jobs:
             -sdk iphonesimulator \
             -destination "platform=iOS Simulator,id=$DEVICE_UDID" \
             -derivedDataPath "$SIM_DD" \
+            ARCHS=x86_64 \
+            EXCLUDED_ARCHS=arm64 \
+            ONLY_ACTIVE_ARCH=NO \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
