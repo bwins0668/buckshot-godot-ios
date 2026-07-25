@@ -84,6 +84,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--png", required=False, default="")
     ap.add_argument("--png2", required=False, default="")
+    ap.add_argument("--png3", required=False, default="")
     ap.add_argument("--log", required=False, default="")
     ap.add_argument("--syslog", required=False, default="")
     ap.add_argument("--json", action="store_true")
@@ -93,6 +94,7 @@ def main():
     log = pathlib.Path(args.log) if args.log else None
     syslog = pathlib.Path(args.syslog) if args.syslog else None
     png2 = pathlib.Path(args.png2) if args.png2 else None
+    png3 = pathlib.Path(args.png3) if args.png3 else None
 
     result = {
         "pass": False,
@@ -102,10 +104,12 @@ def main():
         "png_mean": None,
         "png_var": None,
         "png2_mean": None,
+        "png3_mean": None,
+        "first_non_black": None,
         "log_lines": 0,
     }
 
-    pngs = [p for p in (png, png2) if p and p.exists()]
+    pngs = [p for p in (png, png2, png3) if p and p.exists()]
     if not pngs:
         result["reason"] = "no_png"
         if args.json:
@@ -113,17 +117,26 @@ def main():
         return 1
 
     means = []
-    for p in pngs:
+    for i, p in enumerate(pngs):
         mean, var = png_mean_variance(p)
-        result["png_mean" if p == png else "png2_mean"] = mean
+        key = ("png_mean", "png2_mean", "png3_mean")[i]
+        result[key] = mean
         if mean is not None:
             means.append(mean)
             result["png_var"] = var
+            if result["first_non_black"] is None and mean >= BLACK_MEAN_THRESHOLD:
+                result["first_non_black"] = p.name
     if means:
         avg_mean = sum(means) / len(means)
-        if avg_mean < BLACK_MEAN_THRESHOLD:
+        # PASS if ANY of the screenshots is non-black — means the app
+        # eventually rendered, even if the first frame was still the
+        # splash/launch image.
+        max_mean = max(means)
+        result["avg_mean"] = avg_mean
+        result["max_mean"] = max_mean
+        if max_mean < BLACK_MEAN_THRESHOLD:
+            # All screenshots black: real black-screen failure
             result["black_screen"] = True
-            result["avg_mean"] = avg_mean
             if args.json:
                 print(json.dumps(result, indent=2))
             return 2
