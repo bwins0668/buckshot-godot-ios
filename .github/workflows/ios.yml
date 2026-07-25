@@ -175,6 +175,7 @@ jobs:
           if [ -n "$IOS_P12_BASE64" ]; then
             IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | head -1 | sed -n 's/.*"\(.*\)".*/\1/p')
             echo "Using identity: $IDENTITY"
+            set +e
             cp ci/ExportOptions.plist "$RUNNER_TEMP/ExportOptions.plist"
             xcodebuild \
               -project "$PROJECT" \
@@ -188,12 +189,21 @@ jobs:
               PROVISIONING_PROFILE_SPECIFIER="LpqS" \
               CODE_SIGNING_REQUIRED=YES \
               CODE_SIGNING_ALLOWED=YES \
-              archive 2>&1 | tail -40
+              archive > "$RUNNER_TEMP/archive.log" 2>&1
+            ARC=$?
+            echo "archive exit=$ARC"
+            tail -30 "$RUNNER_TEMP/archive.log"
+            if [ $ARC -ne 0 ]; then exit $ARC; fi
             xcodebuild \
               -exportArchive \
               -archivePath "$RUNNER_TEMP/Buckshot.xcarchive" \
               -exportPath "$RUNNER_TEMP/ipa_out" \
-              -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" 2>&1 | tail -20
+              -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" > "$RUNNER_TEMP/export.log" 2>&1
+            EXP=$?
+            echo "exportArchive exit=$EXP"
+            tail -30 "$RUNNER_TEMP/export.log"
+            if [ $EXP -ne 0 ]; then exit $EXP; fi
+            ls -la "$RUNNER_TEMP/ipa_out" 2>&1
           else
             xcodebuild \
               -project "$PROJECT" \
@@ -203,7 +213,11 @@ jobs:
               CODE_SIGNING_REQUIRED=NO \
               CODE_SIGNING_ALLOWED=NO \
               -derivedDataPath "$RUNNER_TEMP/derived" \
-              build 2>&1 | tail -40
+              build > "$RUNNER_TEMP/build.log" 2>&1
+            BL=$?
+            echo "build exit=$BL"
+            tail -20 "$RUNNER_TEMP/build.log"
+            [ $BL -ne 0 ] && exit $BL
           fi
 
       - name: Upload artifacts
