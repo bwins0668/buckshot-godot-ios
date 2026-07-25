@@ -27,29 +27,48 @@ import pathlib
 
 # Order matters: replace identity first so the style rewrite doesn't see
 # the original value being half-matched.
+#
+# pbxproj writes the CODE_SIGN_IDENTITY key in two forms:
+#   CODE_SIGN_IDENTITY = "iPhone Distribution";
+#   "CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+# (the second is quoted because the [] would otherwise break the
+#  OpenStep parser). We handle both forms with a single regex that
+# uses a backreference group to keep the leading (and trailing) quote
+# usage symmetric:
+#
+#   ( " ? )  CODE_SIGN_IDENTITY  ( \[[^\]]*\] )?  \1  = "iPhone Distribution";
+#   group 1 captures either a single " or empty;
+#   \1 (back-reference) forces the trailing position to use the same
+#   choice, so the second form (quoted key) preserves its quotes and
+#   the first form (unquoted key) stays unquoted.
+#
+# IMPORTANT: previous attempts used `r'"?..."?'` directly, which in a
+# raw-string regex is _literally_ a `"` followed by `?` quantifier --
+# not "optional quote" -- and produced output like
+#   "?CODE_SIGN_IDENTITY"? = "Apple Distribution";
+# which broke Xcode's plist parser. The backreference construction
+# below avoids the `"?` footgun entirely.
 PAIRS = [
-    # pbxproj writes the key in two forms:
-    #   CODE_SIGN_IDENTITY = "iPhone Distribution";
-    #   "CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
-    # (the second is quoted because the [] would otherwise break the
-    #  OpenStep parser). Handle both with optional outer quotes.
-    (r'"?CODE_SIGN_IDENTITY(\[[^\]]*\])?"? = "iPhone Distribution";',
-     r'"?CODE_SIGN_IDENTITY\1"? = "Apple Distribution";'),
-    (r'CODE_SIGN_STYLE = "Automatic";',
+    (
+        r'''("?)CODE_SIGN_IDENTITY(\[[^\]]*\])?\1 = "iPhone Distribution";''',
+        r'''\1CODE_SIGN_IDENTITY\2\1 = "Apple Distribution";''',
+    ),
+    ('CODE_SIGN_STYLE = "Automatic";',
      'CODE_SIGN_STYLE = "Manual";'),
-    (r'ProvisioningStyle = Automatic;',
+    ('ProvisioningStyle = Automatic;',
      'ProvisioningStyle = Manual;'),
-    (r'IPHONEOS_DEPLOYMENT_TARGET = 11\.0;',
+    ('IPHONEOS_DEPLOYMENT_TARGET = 11.0;',
      'IPHONEOS_DEPLOYMENT_TARGET = 12.0;'),
-]
+]  # noqa: E501
 
 
 def patch(text: str) -> tuple[str, dict[str, int]]:
-    counts = {}
+    counts: dict[str, int] = {}
     for pattern, replacement in PAIRS:
-        text, n = re.subn(pattern, replacement, text)
-        # Record by leading token of the pattern for visibility.
-        label = pattern.split()[0]
+        new_text, n = re.subn(pattern, replacement, text)
+        text = new_text
+        # Record by leading non-whitespace token of the pattern for visibility.
+        label = pattern.lstrip('(').split()[0]
         counts[label] = counts.get(label, 0) + n
     return text, counts
 
