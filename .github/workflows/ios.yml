@@ -106,6 +106,31 @@ jobs:
           "$GODOT_PATH" --headless --path . --export-release "iOS" builds/buckshot.xcodeproj 2>&1 | tail -50
           ls -la builds/
 
+      - name: Configure code signing for manual
+        shell: bash
+        run: |
+          # The Godot iOS exporter writes the xcodeproj with
+          #   CODE_SIGN_IDENTITY = "iPhone Distribution"
+          #   CODE_SIGN_STYLE    = "Automatic"
+          # which conflicts with our manual Distribution cert + dev profile
+          # combo. Edit the pbxproj in-place to set Manual signing style.
+          PBXPROJ="builds/buckshot.xcodeproj/project.pbxproj"
+          if [ ! -f "$PBXPROJ" ]; then
+            echo "Not found: $PBXPROJ; skipping"
+            exit 0
+          fi
+          python3 - <<'PY'
+import pathlib, re
+p = pathlib.Path("builds/buckshot.xcodeproj/project.pbxproj")
+s = p.read_text(encoding="utf-8")
+s2 = re.sub(r'CODE_SIGN_STYLE = "Automatic";', 'CODE_SIGN_STYLE = "Manual";', s)
+s2 = re.sub(r'ProvisioningStyle = Automatic;', 'ProvisioningStyle = Manual;', s2)
+# Keep CODE_SIGN_IDENTITY = "iPhone Distribution" -- that's the cert's
+# display name, matches what we have in the keychain.
+p.write_text(s2, encoding="utf-8")
+print("pbxproj: switched AUTOMATIC -> MANUAL signing style")
+PY
+
       - name: Repair pbxproj indentation
         shell: bash
         run: |
