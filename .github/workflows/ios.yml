@@ -423,6 +423,11 @@ jobs:
               "$RUNNER_TEMP/sim.log" "$RUNNER_TEMP/sim-syslog.txt" 2>/dev/null; then
             echo "::warning::Simulator smoke test surfaced crash signatures. Inspect sim.log + sim.png + sim-syslog.txt artifacts."
           fi
+          # macos-14 runner does NOT ship Pillow. Without it ci/sim_check.py
+          # silently returns png_mean=null → verdict passes-by-default, hiding
+          # real black screens. Install it before sim_check so the verdict is
+          # actually computed from PNG pixel data.
+          python3 -m pip install --quiet --user Pillow 2>&1 | tail -5 || true
           # Phase 6 — machine-readable verdict via ci/sim_check.py.
           python3 ci/sim_check.py \
             --png "$RUNNER_TEMP/sim.png" \
