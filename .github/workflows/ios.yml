@@ -2,7 +2,7 @@ name: Build Buckshot iOS
 
 on:
   push:
-    branches: [main]
+    branches: [main, fresh-main, master]
   workflow_dispatch:
 
 permissions:
@@ -105,29 +105,15 @@ jobs:
           mkdir -p builds
           "$GODOT_BIN" --headless --path . --export-release "iOS" builds/buckshot.xcodeproj 2>&1 | tail -50
           ls -la builds/
+
+      - name: Repair pbxproj indentation
+        shell: bash
+        run: |
           # Godot 4.1.1 iOS export bug: PBXFileReference entries for InfoPlist
           # .lproj files are emitted without leading tabs, breaking Xcode's
           # plist parser. Repair the indentation before xcodebuild runs.
           if [ -f builds/buckshot.xcodeproj/project.pbxproj ]; then
-            python3 - <<'PY'
-import re, pathlib
-p = pathlib.Path("builds/buckshot.xcodeproj/project.pbxproj")
-src = p.read_text(encoding="utf-8")
-lines = src.splitlines(keepends=True)
-fixed = []
-in_pbfr_section = False
-for line in lines:
-    if "Begin PBXFileReference section" in line:
-        in_pbfr_section = True
-    elif "End PBXFileReference section" in line:
-        in_pbfr_section = False
-    if in_pbfr_section and re.match(r"^[A-Z0-9]{24} /\*", line) and not line.startswith("\t"):
-        fixed.append("\t\t" + line)
-    else:
-        fixed.append(line)
-p.write_text("".join(fixed), encoding="utf-8")
-print("Repaired PBXFileReference indentation")
-PY
+            python3 ci/repair_pbxproj.py builds/buckshot.xcodeproj/project.pbxproj
           fi
 
       - name: Install provisioning profile
