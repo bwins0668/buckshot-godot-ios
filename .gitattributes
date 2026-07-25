@@ -1,1 +1,7 @@
+# Git LFS tracked files
 scenes/main.tscn filter=lfs diff=lfs merge=lfs -text
+.godot/imported/* filter=lfs diff=lfs merge=lfs -text
+
+# Force LF line endings for ALL text files (Godot 4.1.1 parser chokes on CRLF)
+# without affecting binary files or LFS-tracked files.
+*       text=auto eol=lf

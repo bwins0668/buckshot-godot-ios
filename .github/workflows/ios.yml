@@ -94,6 +94,13 @@ jobs:
             echo "ERROR: cache looks incomplete — LFS pull likely failed"
             exit 1
           fi
+          # Phase 2b — strip CRLF from .import/.remap files. Godot 4.1.1's
+          # INI parser (ResourceFormatImporter::load → _test_for_reimport)
+          # emits "Expected ',''" on every .glb.import when CRLF line
+          # endings are present. Git on Windows can commit CRLF; on
+          # macos-14 the runner then trips these errors and the export
+          # ships a black PCK. Fix in place, idempotent.
+          python3 ci/fix_import_crlf.py
 
       - name: Sanity-check critical mesh cache
         shell: bash
