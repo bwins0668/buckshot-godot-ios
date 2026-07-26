@@ -25,6 +25,13 @@ env:
   # For the SIMULATOR smoke test: force opengl3 (works on iOS Simulator).
   # For the REAL DEVICE IPA: leave unset (Godot 4.3 default vulkan →
   # MoltenVK → Apple Metal works on iPad M2 + iOS 27).
+  #
+  # v0.9 (Candidate A — gl_compatibility 补刀):DEVICE 默认在
+  # ci/patch_info_plist.py 里硬编为 [vulkan, mobile](过去是 None 走 auto),
+  # 因为 project.godot 删了 mobile_renderer=gl_compatibility 子键,但
+  # v0.8 真机 55MB syslog 0 GPU 日志提示有人仍在压 GLES。这里 ios.yml
+  # 仍保持 "" 以让 patch_info_plist.py 的 DEFAULT 生效;反过来若用户
+  # 想强制 opengl3 / metal 测试,把这一行改成 "opengl3" / "metal" 即可。
   PATCH_GODOT_CMDLINE_SIM: opengl3
   PATCH_GODOT_CMDLINE_DEVICE: ""
 
