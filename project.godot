@@ -583,10 +583,7 @@ locale/locale_filter_mode=0
 [rendering]
 
 renderer/rendering_method="mobile"
-# v0.9 (Candidate A — gl_compatibility 补刀):删掉 mobile_renderer="gl_compatibility"。
-# 该子键在 iPad M2 + iOS 27 上强制走 OpenGL ES,而 Apple 已彻底从 iPad 移除 OpenGL ES。
-# 任何走 gl_compatibility 的路径(v0.5/v0.6/v0.7/v0.8)真机必黑屏,与 Godot 版本无关。
-# 此处必须删,由 ci/patch_info_plist.py 注入 --rendering-method mobile 让 4.3 Mobile renderer 走默认 Vulkan→MoltenVK→Metal。
+renderer/rendering_method.mobile_renderer="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
 limits/opengl/max_lights_per_object=20
 environment/defaults/default_clear_color=Color(0.254902, 0.254902, 0.254902, 1)

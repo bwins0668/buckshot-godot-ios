@@ -39,24 +39,26 @@ import sys
 from pathlib import Path
 from typing import Iterable
 
-# v0.9 (Candidate A — gl_compatibility 补刀): device default FLIPPED to vulkan/mobile.
+# v0.8.3: split sim vs device cmdline override.
 #
-# 之前 v0.8 的 device 默认是 None(让 Godot 4.3 自走 vulkan→MoltenVK→Metal),
-# 但 project.godot 还有 `renderer/rendering_method.mobile_renderer="gl_compatibility"`
-# 子键在压它。删除子键后,Mobile renderer 在 iOS 上走默认 Vulkan/MoltenVK→Metal,但
-# v0.8 真机 55MB syslog 0 GPU 日志说明有人在压它走 GLES,所以这里**强制**写入
-# cmdline 让 4.3 一定走 mobile(MoltenVK→Metal)。
+# Real iOS device: --rendering-driver omitted → Godot 4.3 default is
+# `vulkan` which routes through MoltenVK to Apple Metal on iPad M2 +
+# iOS 27. The MoltenVK layer's AGXMetalG14G.dlopen was confirmed in
+# the v0.8 iPad syslog, so the device path works.
 #
-# 真机: --rendering-driver vulkan --rendering-method mobile  → MoltenVK→Apple Metal
-#       (Apple Silicon M2 + iOS 27, AGXMetalG14G.dlopen 已在 v0.8 真机 syslog 验证可用)
-#
-# Sim 仍走 opengl3(让 Sim 仍能渲染做烟测; v0.8.3 已确认 Godot 4.3 sim 是硬 vulkan,
-# 这个 sim cmdline 大概率仍被忽略,但保留同样无害 — 真正的 sim 死路要看 Godot 上游修)。
+# iOS Simulator: --rendering-driver opengl3 → OpenGL ES, which is
+# natively supported by the Simulator runtime. Godot 4.3 iOS export
+# template has NO "metal" driver option; the only valid options are
+# vulkan / opengl3 / dummy. Forcing "metal" causes
+#   "Unknown rendering driver 'metal', aborting." (v0.8.2 sim.log).
+# Forcing vulkan on sim crashes at
+#   drivers/vulkan/rendering_device_driver_vulkan.cpp:1195
+#   (v0.8 sim-syslog.txt). opengl3 is the only viable sim fallback.
 #
 # Env var precedence:
 #   PATCH_GODOT_CMDLINE  → legacy, used by both sim and device
 #   PATCH_GODOT_CMDLINE_SIM / PATCH_GODOT_CMDLINE_DEVICE  → split
-#   None of them set  → device defaults to [vulkan, mobile]; sim defaults to [opengl3, gl_compatibility]
+#   Either may be empty/unset to mean "no override" (let Godot auto-pick).
 #
 # Allowed values per side: "opengl3" | "vulkan" | "metal" | "" (empty)
 GODOT_CMDLINE_SIM: list[str] | None = None
@@ -90,15 +92,8 @@ if _LEGACY:
     GODOT_CMDLINE_SIM = _parse_cmd(_LEGACY, "SIM/DEVICE")
     GODOT_CMDLINE_DEVICE = _parse_cmd(_LEGACY, "SIM/DEVICE")
 else:
-    # v0.9: split defaults.
     GODOT_CMDLINE_SIM = _parse_cmd(_SIM, "SIM")
-    if GODOT_CMDLINE_SIM is None and not _SIM and not _LEGACY:
-        # Sim default: opengl3 (the only Godot 4.3 sim driver that doesn't crash).
-        GODOT_CMDLINE_SIM = _parse_cmd("opengl3", "SIM-DEFAULT")
     GODOT_CMDLINE_DEVICE = _parse_cmd(_DEV, "DEVICE")
-    if GODOT_CMDLINE_DEVICE is None and not _DEV and not _LEGACY:
-        # v0.9 device default: vulkan/mobile → MoltenVK→Metal on iPad M2.
-        GODOT_CMDLINE_DEVICE = _parse_cmd("vulkan", "DEVICE-DEFAULT")
 
 
 def cmdline_for_target(target: str) -> list[str] | None:
