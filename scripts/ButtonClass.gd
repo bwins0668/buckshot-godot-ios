@@ -62,5 +62,4 @@ func OnPress():
 		if (isDynamic && playing): speaker_press.play()
 		if (rebind != null): rebindManager.GetRebind(rebind)
 		if (language): options.AdjustLanguage(alias)
-		if (pipe != null): pipe.Pipe(alias)
 		emit_signal("is_pressed")

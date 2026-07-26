@@ -66,9 +66,9 @@ func setAchievement(_name) -> bool: return false
 func clearAchievement(_name) -> bool: return false
 func storeStats() -> bool: return false
 func findLeaderboard(_name) -> void: pass
-func getLeaderboardEntryCount() -> int: return 0
+func getLeaderboardEntryCount(_handle = 0) -> int: return 0
 func setLeaderboardDetailsMax(_n) -> int: return 0
-func uploadLeaderboardScore(_score, _keep = true, _details = PackedInt32Array()) -> void: pass
+func uploadLeaderboardScore(_score, _keep = true, _details = PackedInt32Array(), _handle = 0) -> void: pass
 func downloadLeaderboardEntries(_start, _end, _type = 0) -> void: pass
 
 # ── Lobby / matchmaking (inert on iOS) ──
