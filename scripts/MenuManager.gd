@@ -86,6 +86,10 @@ func _input(event):
 
 func Intro():
 	cursor.SetCursor(false, false)
+	# v0.9.7 fix (audit ab911103): splash intro 9s 内禁用 buttons,否则 iOS 触摸
+	# 命中 START 等按钮 → OnPress() 立即触发 → Start() → 4s 后 change_scene_to_file
+	# 跳到 main 游戏场景 → 用户看到游戏内触控"失效"(实际是 input map 没绑触摸)
+	Buttons(false)
 	if GlobalVariables.lobby_id_found_in_command_line != 0 && !GlobalVariables.command_line_checked:
 		print("lobby id found in command line. dont run the menu intro")
 		return
@@ -104,6 +108,8 @@ func FinishIntro():
 	viewing_intro = false
 	mouseblocker.visible = false
 	cursor.SetCursor(true, false)
+	# v0.9.7 fix: 重新启用 buttons(intro 期间被 Intro() 禁用)
+	Buttons(true)
 	controller.settingFilter = true
 	controller.SetMainControllerState(controller.controller_currently_enabled)
 	if (cursor.controller_active): firstFocus_main.grab_focus()
